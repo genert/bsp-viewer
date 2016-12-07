@@ -19,6 +19,11 @@ export default {
   sourceDir: sourceDir,
   modulesDir: modulesDir,
 
+  files: {
+    entry: path.join(sourceDir, 'files', '*.bsp'),
+    output: path.join(buildDir)
+  },
+
   images: {
     entry: path.join(sourceDir, 'images', '**', '*.{jpg,jpeg,gif,png,svg,ico}'),
     output: path.join(buildDir, 'assets', 'images')
@@ -26,7 +31,7 @@ export default {
 
   javascripts: {
     entry: path.join(sourceDir, 'javascript', 'main.js'),
-    output: path.join(buildDir, 'assets', 'javascript', 'bundle.js')
+    output: path.join(buildDir)
   },
 
   stylesheets: {
@@ -60,6 +65,9 @@ export default {
     entries: [{
       files: path.join('images', '**', '*.{jpg,jpeg,gif,png,svg}'),
       tasks: ['images']
+    }, {
+      files: path.join('files', '*.bsp'),
+      tasks: ['files']
     }, {
       files: path.join('stylesheet', '**', '*.{css,scss,sass}'),
       tasks: ['stylesheets']

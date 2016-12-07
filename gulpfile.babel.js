@@ -54,6 +54,12 @@ gulp.task('images', () => {
   .pipe(gulp.dest(config.images.output));
 });
 
+gulp.task('files', () => {
+  return gulp.src(config.files.entry)
+  .pipe($changed(config.files.output))
+  .pipe($size({ title: '[files]', gzip: true }))
+  .pipe(gulp.dest(config.files.output));
+});
 
 // Compiles and deploys stylesheets.
 gulp.task('stylesheets', () => {
@@ -170,6 +176,7 @@ gulp.task('watch', () => {
 gulp.task('default', () => {
   let seq = [
     'images',
+    'files',
     'javascripts',
     'stylesheets',
     'html'

@@ -1,3 +1,4 @@
-const func = () => `3 + 3 + 3 = ${3 + 3 + 3}`;
+import BSP from './bsp';
 
-console.log(func());
+new BSP();
+ 

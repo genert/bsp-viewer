@@ -1,7 +1,10 @@
 import webpack from 'webpack';
 import config from './config';
 
-let plugins = [];
+console.log(webpack)
+let plugins = [
+
+];
 
 if (!config.env.debug) {
   plugins.push(new webpack.optimize.UglifyJsPlugin({
@@ -17,7 +20,8 @@ export default {
   entry: config.javascripts.entry,
 
   output: {
-    filename: config.javascripts.output
+    path: config.javascripts.output,
+    filename: '[name].bundle.js'
   },
 
   module: {
