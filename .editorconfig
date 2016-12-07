@@ -1,0 +1,25 @@
+# Global
+[*]
+end_of_line = lf
+insert_final_newline = true
+charset = utf-8
+
+# Javascript
+[*.js]
+indent_style = space
+indent_size = 2
+
+# Stylesheet
+[*.{css,scss,sass}]
+indent_style = space
+indent_size = 4
+
+# HTML
+[*.{jade,pug,html}]
+indent_style = space
+indent_size = 2
+
+# JSON
+[*.json]
+indent_style = space
+indent_size = 2

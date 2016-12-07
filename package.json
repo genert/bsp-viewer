@@ -1,0 +1,53 @@
+{
+  "name": "bsp-viewer",
+  "version": "1.0.0",
+  "private": true,
+  "description": "",
+  "main": "gulpfile.babel.js",
+  "scripts": {
+    "clean:coverage": "rimraf coverage",
+    "start": "gulp --env debug",
+    "build": "gulp --env production && gulp rev",
+    "test": "mocha tests/*.spec.js --recursive --compilers js:babel-core/register --bail",
+    "coverage": "npm run clean:coverage && istanbul cover ./node_modules/mocha/bin/_mocha -- --ui bdd -R spec -t 5000 --compilers js:babel-core/register"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/Genert/bsp-viewer.git"
+  },
+  "keywords": [],
+  "author": "Genert Org <orggenert@gmail.com> (http://thedeveloper.xyz/)",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/Genert/bsp-viewer/issues"
+  },
+  "homepage": "https://github.com/Genert/bsp-viewer#readme",
+  "devDependencies": {
+    "babel-core": "^6.18.2",
+    "babel-eslint": "^7.1.1",
+    "babel-loader": "^6.2.8",
+    "babel-plugin-add-module-exports": "^0.2.1",
+    "babel-preset-latest": "^6.16.0",
+    "babel-preset-stage-0": "^6.16.0",
+    "browser-sync": "^2.18.2",
+    "eslint": "^3.10.2",
+    "gulp": "^3.9.1",
+    "gulp-autoprefixer": "^3.1.1",
+    "gulp-changed": "^1.3.2",
+    "gulp-imagemin": "^3.1.1",
+    "gulp-plumber": "^1.1.0",
+    "gulp-pug": "^3.1.0",
+    "gulp-replace": "^0.5.4",
+    "gulp-rev": "^7.1.2",
+    "gulp-sass": "^2.3.2",
+    "gulp-size": "^2.1.0",
+    "gulp-util": "^3.0.7",
+    "istanbul": "^1.1.0-alpha.1",
+    "mocha": "^3.2.0",
+    "rimraf": "^2.5.4",
+    "rimraf-promise": "^2.0.0",
+    "run-sequence": "^1.2.2",
+    "unexpected": "^10.20.0",
+    "webpack": "^1.13.3"
+  }
+}
