@@ -1,30 +1,7 @@
 /*
 * q3shader.js - Parses Quake 3 shader files (.shader)
 */
-
-/*
-* Copyright (c) 2009 Brandon Jones
-*
-* This software is provided 'as-is', without any express or implied
-* warranty. In no event will the authors be held liable for any damages
-* arising from the use of this software.
-*
-* Permission is granted to anyone to use this software for any purpose,
-* including commercial applications, and to alter it and redistribute it
-* freely, subject to the following restrictions:
-*
-*    1. The origin of this software must not be misrepresented; you must not
-*    claim that you wrote the original software. If you use this software
-*    in a product, an acknowledgment in the product documentation would be
-*    appreciated but is not required.
-*
-*    2. Altered source versions must be plainly marked as such, and must not
-*    be misrepresented as being the original software.
-*
-*    3. This notice may not be removed or altered from any source
-*    distribution.
-*/
-
+import shaderBuilder from './shader-builder';
 //
 // Shader Tokenizer
 //
@@ -496,16 +473,19 @@ q3shader.buildVertexShader = function(stageShader, stage) {
           'vTexCoord += vec2(0.5, 0.5);',
         ]);
         break;
+
       case 'scroll':
         shader.addLines([
           'vTexCoord += vec2(' + tcMod.sSpeed.toFixed(4) + ' * time, ' + tcMod.tSpeed.toFixed(4) + ' * time);'
         ]);
         break;
+
       case 'scale':
         shader.addLines([
           'vTexCoord *= vec2(' + tcMod.scaleX.toFixed(4) + ', ' + tcMod.scaleY.toFixed(4) + ');'
         ]);
         break;
+
       case 'stretch':
         shader.addWaveform('stretchWave', tcMod.waveform);
         shader.addLines([
@@ -514,6 +494,7 @@ q3shader.buildVertexShader = function(stageShader, stage) {
           'vTexCoord += vec2(0.5 - (0.5 * stretchWave), 0.5 - (0.5 * stretchWave));',
         ]);
         break;
+
       case 'turb':
         var tName = 'turbTime' + i;
         shader.addLines([
@@ -522,6 +503,7 @@ q3shader.buildVertexShader = function(stageShader, stage) {
           'vTexCoord.t += sin( ( position.y * 1.0/128.0 * 0.125 + ' + tName + ' ) * 6.283) * ' + tcMod.turbulance.amp.toFixed(4) + ';'
         ]);
         break;
+
       default: break;
     }
   }
@@ -532,6 +514,7 @@ q3shader.buildVertexShader = function(stageShader, stage) {
       shader.addVaryings({ vLightCoord: 'vec2' });
       shader.addLines([ 'vLightCoord = lightCoord;' ]);
       break;
+
     default:
       break;
   }
@@ -541,7 +524,7 @@ q3shader.buildVertexShader = function(stageShader, stage) {
   return shader.getSource();
 };
 
-q3shader.buildFragmentShader = function(stageShader, stage) {
+q3shader.buildFragmentShader = function (stageShader, stage) {
   var shader = new shaderBuilder();
 
   shader.addVaryings({
@@ -560,10 +543,12 @@ q3shader.buildFragmentShader = function(stageShader, stage) {
     case 'vertex':
       shader.addLines(['vec3 rgb = texColor.rgb * vColor.rgb;']);
       break;
+
     case 'wave':
       shader.addWaveform('rgbWave', stage.rgbWaveform);
       shader.addLines(['vec3 rgb = texColor.rgb * rgbWave;']);
       break;
+
     default:
       shader.addLines(['vec3 rgb = texColor.rgb;']);
       break;
@@ -573,6 +558,7 @@ q3shader.buildFragmentShader = function(stageShader, stage) {
     case 'wave':
       shader.addWaveform('alpha', stage.alphaWaveform);
       break;
+
     case 'lightingspecular':
       // For now this is VERY special cased. May not work well with all instances of lightingSpecular
       shader.addUniforms({
@@ -589,6 +575,7 @@ q3shader.buildFragmentShader = function(stageShader, stage) {
         'float alpha = 1.0;'
       ]);
       break;
+
     default:
       shader.addLines(['float alpha = texColor.a;']);
       break;
@@ -601,16 +588,19 @@ q3shader.buildFragmentShader = function(stageShader, stage) {
           'if(alpha == 0.0) { discard; }'
         ]);
         break;
+
       case 'LT128':
         shader.addLines([
           'if(alpha >= 0.5) { discard; }'
         ]);
         break;
+
       case 'GE128':
         shader.addLines([
           'if(alpha < 0.5) { discard; }'
         ]);
         break;
+
       default:
         break;
     }
@@ -621,120 +611,4 @@ q3shader.buildFragmentShader = function(stageShader, stage) {
   return shader.getSource();
 };
 
-//
-// WebGL Shader builder utility
-//
-
-const shaderBuilder = function() {
-  this.attrib = {};
-  this.varying = {};
-  this.uniform = {};
-
-  this.functions = {};
-
-  this.statements = [];
-};
-
-shaderBuilder.prototype.addAttribs = function(attribs) {
-  for (var name in attribs) {
-    this.attrib[name] = 'attribute ' + attribs[name] + ' ' + name + ';';
-  }
-};
-
-shaderBuilder.prototype.addVaryings = function(varyings) {
-  for (var name in varyings) {
-    this.varying[name] = 'varying ' + varyings[name] + ' ' + name + ';';
-  }
-};
-
-shaderBuilder.prototype.addUniforms = function(uniforms) {
-  for (var name in uniforms) {
-    this.uniform[name] = 'uniform ' + uniforms[name] + ' ' + name + ';';
-  }
-};
-
-shaderBuilder.prototype.addFunction = function(name, lines) {
-  this.functions[name] = lines.join('\n');
-};
-
-shaderBuilder.prototype.addLines = function(statements) {
-  for(var i = 0; i < statements.length; ++i) {
-    this.statements.push(statements[i]);
-  }
-};
-
-shaderBuilder.prototype.getSource = function() {
-  var src = '\
-  #ifdef GL_ES \n\
-  precision highp float; \n\
-  #endif \n';
-
-  for(let i in this.attrib) {
-    src += this.attrib[i] + '\n';
-  }
-
-  for(let i in this.varying) {
-    src += this.varying[i] + '\n';
-  }
-
-  for(let i in this.uniform) {
-    src += this.uniform[i] + '\n';
-  }
-
-  for(let i in this.functions) {
-    src += this.functions[i] + '\n';
-  }
-
-  src += 'void main(void) {\n\t';
-  src += this.statements.join('\n\t');
-  src += '\n}\n';
-
-  return src;
-};
-
-// q3-centric functions
-
-shaderBuilder.prototype.addWaveform = function(name, wf, timeVar) {
-  let funcName = null;
-
-  if(!wf) {
-    this.statements.push('float ' + name + ' = 0.0;');
-    return;
-  }
-
-  if(!timeVar) { timeVar = 'time'; }
-
-  if(typeof(wf.phase) === 'number') {
-    wf.phase = wf.phase.toFixed(4);
-  }
-
-  switch(wf.funcName) {
-    case 'sin':
-      this.statements.push('float ' + name + ' = ' + wf.base.toFixed(4) + ' + sin((' + wf.phase + ' + ' + timeVar + ' * ' + wf.freq.toFixed(4) + ') * 6.283) * ' + wf.amp.toFixed(4) + ';');
-      return;
-    case 'square': funcName = 'square'; this.addSquareFunc(); break;
-    case 'triangle': funcName = 'triangle'; this.addTriangleFunc(); break;
-    case 'sawtooth': funcName = 'fract'; break;
-    case 'inversesawtooth': funcName = '1.0 - fract'; break;
-    default:
-      this.statements.push('float ' + name + ' = 0.0;');
-      return;
-  }
-  this.statements.push('float ' + name + ' = ' + wf.base.toFixed(4) + ' + ' + funcName + '(' + wf.phase + ' + ' + timeVar + ' * ' + wf.freq.toFixed(4) + ') * ' + wf.amp.toFixed(4) + ';');
-};
-
-shaderBuilder.prototype.addSquareFunc = function() {
-  this.addFunction('square', [
-    'float square(float val) {',
-    '   return (mod(floor(val*2.0)+1.0, 2.0) * 2.0) - 1.0;',
-    '}',
-  ]);
-};
-
-shaderBuilder.prototype.addTriangleFunc = function() {
-  this.addFunction('triangle', [
-    'float triangle(float val) {',
-    '   return abs(2.0 * fract(val) - 1.0);',
-    '}',
-  ]);
-};
+export default q3shader;

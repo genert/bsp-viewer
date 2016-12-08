@@ -28,7 +28,7 @@ export default function (leafIndex, visBuffer, visSize, shaders, leaves, faces, 
 
     if (checkVis(curLeaf.cluster, leaf.cluster, visBuffer, visSize)) {
       for (let j = 0; j < leaf.leafFaceCount; ++j) {
-        var face = faces[leafFaces[[j + leaf.leafFace]]];
+        let face = faces[leafFaces[[j + leaf.leafFace]]];
 
         if (face) {
           visibleShaders[face.shader] = true;

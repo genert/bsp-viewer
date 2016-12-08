@@ -18,6 +18,26 @@ import readBrushes from './read-brushes';
 import readBrushSides from './read-brush-sides';
 import readVisData from './read-visdata';
 import compileMap from './compile-map';
+import getLeaf from './get-leaf';
+import buildVisibleList from './build-visibility-list';
+import shader from '../shaders';
+
+let header = null;
+let shaders = null;
+let meshVerts = null;
+let lightmaps = null;
+let verts = null;
+let faces = null;
+let planes = null;
+let nodes = null;
+let leaves = null;
+let leafFaces = null;
+let leafBrushes = null;
+let brushes = null;
+let brushSides = null;
+let visData = null;
+let visBuffer = null;
+let visSize = null;
 
 onmessage = function (message) {
   switch (message.data.type) {
@@ -28,30 +48,40 @@ onmessage = function (message) {
       });
       break;
 
+    case 'loadShaders':
+      shader.loadList(message.data.sources);
+      break;
+
+    case 'visibility': {
+      const leafIndex = getLeaf(message.data.pos, nodes, planes);
+      buildVisibleList(leafIndex, visBuffer, visSize, shaders, leaves, faces, leafFaces);
+      break;
+    }
+
     default:
       throw `Unexpected message type: ${message.data}`;
   }
 };
 
 // Parses the BSP file
-async function parseBSP (src, tesselationLevel) {
+const parseBSP = async function (src, tesselationLevel) {
   postMessage({
     type: 'status',
     message: 'Map downloaded, parsing level geometry...'
   });
 
   try {
-    const header = await readHeader(src);
+    header = await readHeader(src);
 
     // Read map entities
     await readEntities(header.lumps[0], src);
 
     // Load visual map components
-    const shaders = await readShaders(header.lumps[1], src);
-    const meshVerts = await readMeshVerts(header.lumps[11], src);
-    const lightmaps = await readLightmaps(header.lumps[14], src);
-    const verts = await readVertices(header.lumps[10], src);
-    const faces = await readFaces(header.lumps[13], src);
+    shaders = await readShaders(header.lumps[1], src);
+    meshVerts = await readMeshVerts(header.lumps[11], src);
+    lightmaps = await readLightmaps(header.lumps[14], src);
+    verts = await readVertices(header.lumps[10], src);
+    faces = await readFaces(header.lumps[13], src);
 
     await compileMap(verts, faces, meshVerts, lightmaps, shaders, tesselationLevel);
 
@@ -61,17 +91,17 @@ async function parseBSP (src, tesselationLevel) {
     });
 
     // Load bsp components
-    const planes = await readPlanes(header.lumps[2], src);
-    const nodes = await readNodes(header.lumps[3], src);
-    const leaves = await readLeaves(header.lumps[4], src);
-    const leafFaces = await readLeafFaces(header.lumps[5], src);
-    const leafBrushes = await readLeafBrushes(header.lumps[6], src);
-    const brushes = await readBrushes(header.lumps[8], src);
-    const brushSides = await readBrushSides(header.lumps[9], src);
-    const visData = await readVisData(header.lumps[16], src);
+    planes = await readPlanes(header.lumps[2], src);
+    nodes = await readNodes(header.lumps[3], src);
+    leaves = await readLeaves(header.lumps[4], src);
+    leafFaces = await readLeafFaces(header.lumps[5], src);
+    leafBrushes = await readLeafBrushes(header.lumps[6], src);
+    brushes = await readBrushes(header.lumps[8], src);
+    brushSides = await readBrushSides(header.lumps[9], src);
+    visData = await readVisData(header.lumps[16], src);
 
-    const visBuffer = visData.buffer;
-    const visSize = visData.size;
+    visBuffer = visData.buffer;
+    visSize = visData.size;
 
     postMessage({
       type: 'bsp',
@@ -91,4 +121,4 @@ async function parseBSP (src, tesselationLevel) {
   } catch (error) {
     throw error;
   }
-}
+};
