@@ -1,4 +1,4 @@
-export default function readEntities (lump, source) {
+export default function (lump, source) {
   return new Promise((success) => {
     source.seek(lump.offset);
 
@@ -46,5 +46,10 @@ export default function readEntities (lump, source) {
     });
 
     success(elements);
+
+    postMessage({
+      type: 'entities',
+      entities: elements
+    });
   });
 }

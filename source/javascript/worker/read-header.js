@@ -1,5 +1,5 @@
-export default function readHeader (source) {
-  return new Promise((success) => {
+export default function (source) {
+  return new Promise((success, failure) => {
     let header = {
       tag: source.readString(4),
       version: source.readULong(),
@@ -13,6 +13,15 @@ export default function readHeader (source) {
       };
 
       header.lumps.push(lump);
+    }
+
+    if (header.tag !== 'IBSP' || header.version !== 46) {
+      postMessage({
+        type: 'status',
+        message: 'Wrong BSP type!'
+      });
+
+      failure();
     }
 
     success(header);

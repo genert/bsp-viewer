@@ -1,5 +1,8 @@
-# bsp-viewer
+# BSP Viewer
 [![Build Status](https://travis-ci.org/Genert/bsp-viewer.svg?branch=master)](https://travis-ci.org/Genert/bsp-viewer)
+
+## Resources
+1. [Unofficial Quake 3 Map Specs ](http://www.mralligator.com/q3/)
 
 ## Contributions & Issues
 Contributions are welcome. Please clearly explain the purpose of the PR and follow the current style.

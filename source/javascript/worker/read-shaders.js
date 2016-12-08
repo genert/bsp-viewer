@@ -1,4 +1,4 @@
-export default function readShaders (lump, source) {
+export default function (lump, source) {
   return new Promise((success) => {
     let count = lump.length / 72;
     let elements = [];

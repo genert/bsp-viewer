@@ -4,3 +4,6 @@ npm-debug.log
 
 # Build files
 public/
+
+# Demo files
+q3tourney2.bsp

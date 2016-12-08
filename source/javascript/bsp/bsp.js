@@ -8,7 +8,7 @@ class BSP {
 
     this._worker.postMessage({
       type: 'load',
-      url: '/pilsner.bsp',
+      url: '/q3tourney2.bsp',
       tesselationLevel: 5
     });
   }
