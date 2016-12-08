@@ -6,7 +6,7 @@ export default function readHeader (source) {
       lumps: []
     };
 
-    for(let i = 0; i < 17; ++i) {
+    for (let i = 0; i < 17; ++i) {
       let lump = {
         offset: source.readULong(),
         length: source.readULong()

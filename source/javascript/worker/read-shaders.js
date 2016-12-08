@@ -1,15 +1,15 @@
-export default function readShaders (lump, src) {
+export default function readShaders (lump, source) {
   return new Promise((success) => {
-    var count = lump.length / 72;
-    var elements = [];
+    let count = lump.length / 72;
+    let elements = [];
 
-    src.seek(lump.offset);
+    source.seek(lump.offset);
 
-    for(var i = 0; i < count; ++i) {
-      var shader = {
-        shaderName: src.readString(64),
-        flags: src.readLong(),
-        contents: src.readLong(),
+    for (let i = 0; i < count; ++i) {
+      const shader = {
+        shaderName: source.readString(64),
+        flags: source.readLong(),
+        contents: source.readLong(),
         shader: null,
         faces: [],
         indexOffset: 0,
