@@ -1,10 +1,7 @@
 import webpack from 'webpack';
 import config from './config';
 
-console.log(webpack)
-let plugins = [
-
-];
+let plugins = [];
 
 if (!config.env.debug) {
   plugins.push(new webpack.optimize.UglifyJsPlugin({

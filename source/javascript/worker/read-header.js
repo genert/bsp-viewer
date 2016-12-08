@@ -1,18 +1,20 @@
 export default function readHeader (source) {
-  let header = {
-    tag: source.readString(4),
-    version: source.readULong(),
-    lumps: []
-  };
-
-  for(let i = 0; i < 17; ++i) {
-    let lump = {
-      offset: source.readULong(),
-      length: source.readULong()
+  return new Promise((success) => {
+    let header = {
+      tag: source.readString(4),
+      version: source.readULong(),
+      lumps: []
     };
 
-    header.lumps.push(lump);
-  }
+    for(let i = 0; i < 17; ++i) {
+      let lump = {
+        offset: source.readULong(),
+        length: source.readULong()
+      };
 
-  return header;
+      header.lumps.push(lump);
+    }
+
+    success(header);
+  });
 }

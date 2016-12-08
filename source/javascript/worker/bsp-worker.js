@@ -1,3 +1,5 @@
+importScripts('/polyfill.min.js');
+
 import request from '../net/request';
 import BinaryFile from '../common/binary-reader';
 import readHeader from './read-header';
@@ -19,30 +21,25 @@ onmessage = function (message) { // eslint-disable-line
 };
 
 // Parses the BSP file
-function parseBSP(src, tesselationLevel = 5) {
+async function parseBSP (src) {
   postMessage({
     type: 'status',
     message: 'Map downloaded, parsing level geometry...'
   });
 
-  var header = readHeader(src);
+  try {
+    const header = await readHeader(src);
+    const elements = await readEntities(header.lumps[0], src);
 
-  if(header.tag !== 'IBSP' || header.version !== 47) {
-    postMessage({
-      type: 'status',
-      message: 'Incompatible BSP version.'
-    });
-
-    return;
-  }
-
-  readEntities(header.lumps[0], src, (elements) => {
     postMessage({
       type: 'entities',
       entities: elements
     });
-  });
 
-  const shaders = readShaders(header.lumps[1], src);
-  console.log(shaders);
+    const shaders = await readShaders(header.lumps[1], src);
+
+    console.log(shaders);
+  } catch (error) {
+    throw error;
+  }
 }
