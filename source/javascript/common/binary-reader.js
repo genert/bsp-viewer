@@ -1,16 +1,12 @@
 const bf_byteBuff = new ArrayBuffer(4);
-
 const bf_wuba = new Uint8Array(bf_byteBuff);
-
 const bf_wsa = new Int16Array(bf_byteBuff);
 const bf_wusa = new Uint16Array(bf_byteBuff);
-
 const bf_wia = new Int32Array(bf_byteBuff);
 const bf_wuia = new Uint32Array(bf_byteBuff);
-
 const bf_wfa = new Float32Array(bf_byteBuff);
 
-class BinaryFile {
+export default class {
   constructor (data) {
     this.buffer = data;
     this.length = data.length;
@@ -127,5 +123,3 @@ class BinaryFile {
     return str;
   }
 }
-
-export default BinaryFile;

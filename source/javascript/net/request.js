@@ -1,9 +1,11 @@
 export default function (url) {
   return new Promise(function (success, failure) {
-    var request = new XMLHttpRequest();
+    const request = new XMLHttpRequest();
 
     request.addEventListener('load', () => {
-      success(request.responseText);
+      if (request.readyState === 4 && request.status === 200) {
+        success(request.responseText);
+      }
     }, false);
 
     request.addEventListener('error', (e) => {

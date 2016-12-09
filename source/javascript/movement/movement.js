@@ -1,7 +1,6 @@
-import { vec3 } from 'gl-matrix';
-
 // Much of this file is a simplified/dumbed-down version of the Q3 player movement code
 // found in bg_pmove.c and bg_slidemove.c
+import { vec3 } from 'gl-matrix';
 
 let MOVEMENT_FRAMETIME = 0.30;
 
@@ -32,22 +31,21 @@ export default class {
   }
 
   applyFriction () {
-    if(!this.onGround) {
+    if (!this.onGround) {
       return;
     }
 
-    var speed = vec3.length(this._velocity);
+    const speed = vec3.length(this._velocity);
+    const control = (speed < MOVEMENT_STOPSPEED) ? MOVEMENT_STOPSPEED : speed;
+    const drop = control * MOVEMENT_FRICTION * MOVEMENT_FRAMETIME;
 
-    var drop = 0;
+    let newSpeed = speed - drop;
 
-    var control = (speed < MOVEMENT_STOPSPEED) ? MOVEMENT_STOPSPEED : speed;
-    drop += control*MOVEMENT_FRICTION * MOVEMENT_FRAMETIME;
-
-    var newSpeed = speed - drop;
     if (newSpeed < 0) {
       newSpeed = 0;
     }
-    if(speed !== 0) {
+
+    if (speed !== 0) {
       newSpeed /= speed;
       vec3.scale(this._velocity, this._velocity, newSpeed);
     } else {
@@ -56,21 +54,28 @@ export default class {
   }
 
   groundCheck () {
-    var checkPoint = [this.position[0], this.position[1], this.position[2] - MOVEMENT_PLAYER_RADIUS - 0.25];
+    const checkPoint = [
+      this.position[0],
+      this.position[1],
+      this.position[2] - MOVEMENT_PLAYER_RADIUS - 0.25
+    ];
 
     this.groundTrace = this._bsp.trace(this.position, checkPoint, MOVEMENT_PLAYER_RADIUS);
 
-    if(this.groundTrace.fraction == 1.0) { // falling
+    // Falling
+    if (this.groundTrace.fraction == 1.0) {
       this.onGround = false;
       return;
     }
 
-    if ( this._velocity[2] > 0 && vec3.dot( this._velocity, this.groundTrace.plane.normal ) > 10 ) { // jumping
+    // Jumping
+    if (this._velocity[2] > 0 && vec3.dot(this._velocity, this.groundTrace.plane.normal) > 10) {
       this.onGround = false;
       return;
     }
 
-    if(this.groundTrace.plane.normal[2] < 0.7) { // steep slope
+    // Steep slope
+    if (this.groundTrace.plane.normal[2] < 0.7) {
       this.onGround = false;
       return;
     }
@@ -108,12 +113,14 @@ export default class {
   }
 
   jump () {
-    if(!this.onGround) { return false; }
+    if (!this.onGround) {
+      return false;
+    }
 
     this.onGround = false;
     this._velocity[2] = MOVEMENT_JUMPVELOCITY;
 
-    //Make sure that the player isn't stuck in the ground
+    // Make sure that the player isn't stuck in the ground
     var groundDist = vec3.dot( this.position, this.groundTrace.plane.normal ) - this.groundTrace.plane.distance - MOVEMENT_PLAYER_RADIUS;
     vec3.add(this.position, this.position, vec3.scale([0, 0, 0], this.groundTrace.plane.normal, groundDist + 5));
 
@@ -127,7 +134,7 @@ export default class {
 
     vec3.normalize(dir, dir);
 
-    if(this.onGround) {
+    if (this.onGround) {
       this.walkMove(dir);
     } else {
       this.airMove(dir);

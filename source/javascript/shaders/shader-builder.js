@@ -9,19 +9,19 @@ export default class {
   statements = [];
 
   addAttribs (attribs) {
-    for (var name in attribs) {
+    for (let name in attribs) {
       this.attrib[name] = `attribute ${attribs[name]} ${name};`;
     }
   }
 
   addVaryings (varyings) {
-    for (var name in varyings) {
+    for (let name in varyings) {
       this.varying[name] = `varying ${varyings[name]} ${name};`;
     }
   }
 
   addUniforms (uniforms) {
-    for (var name in uniforms) {
+    for (let name in uniforms) {
       this.uniform[name] = `uniform ${uniforms[name]} ${name};`;
     }
   }

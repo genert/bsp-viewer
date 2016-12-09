@@ -84,52 +84,12 @@ function respawnPlayer(index) {
   }
 }
 
-function eulerFromQuaternion(out, q, order) {
-  function clamp(value, min, max) {
-    return (value < min ? min : (value > max ? max : value));
-  }
-  // Borrowed from Three.JS :)
-  // q is assumed to be normalized
-  // http://www.mathworks.com/matlabcentral/fileexchange/20696-function-to-convert-between-dcm-euler-angles-quaternions-and-euler-vectors/content/SpinCalc.m
-  var sqx = q[0] * q[0];
-  var sqy = q[1] * q[1];
-  var sqz = q[2] * q[2];
-  var sqw = q[3] * q[3];
-
-  if ( order === 'XYZ' ) {
-    out[0] = Math.atan2( 2 * ( q[0] * q[3] - q[1] * q[2] ), ( sqw - sqx - sqy + sqz ) );
-    out[1] = Math.asin(  clamp( 2 * ( q[0] * q[2] + q[1] * q[3] ), -1, 1 ) );
-    out[2] = Math.atan2( 2 * ( q[2] * q[3] - q[0] * q[1] ), ( sqw + sqx - sqy - sqz ) );
-  } else if ( order ===  'YXZ' ) {
-    out[0] = Math.asin(  clamp( 2 * ( q[0] * q[3] - q[1] * q[2] ), -1, 1 ) );
-    out[1] = Math.atan2( 2 * ( q[0] * q[2] + q[1] * q[3] ), ( sqw - sqx - sqy + sqz ) );
-    out[2] = Math.atan2( 2 * ( q[0] * q[1] + q[2] * q[3] ), ( sqw - sqx + sqy - sqz ) );
-  } else if ( order === 'ZXY' ) {
-    out[0] = Math.asin(  clamp( 2 * ( q[0] * q[3] + q[1] * q[2] ), -1, 1 ) );
-    out[1] = Math.atan2( 2 * ( q[1] * q[3] - q[2] * q[0] ), ( sqw - sqx - sqy + sqz ) );
-    out[2] = Math.atan2( 2 * ( q[2] * q[3] - q[0] * q[1] ), ( sqw - sqx + sqy - sqz ) );
-  } else if ( order === 'ZYX' ) {
-    out[0] = Math.atan2( 2 * ( q[0] * q[3] + q[2] * q[1] ), ( sqw - sqx - sqy + sqz ) );
-    out[1] = Math.asin(  clamp( 2 * ( q[1] * q[3] - q[0] * q[2] ), -1, 1 ) );
-    out[2] = Math.atan2( 2 * ( q[0] * q[1] + q[2] * q[3] ), ( sqw + sqx - sqy - sqz ) );
-  } else if ( order === 'YZX' ) {
-    out[0] = Math.atan2( 2 * ( q[0] * q[3] - q[2] * q[1] ), ( sqw - sqx + sqy - sqz ) );
-    out[1] = Math.atan2( 2 * ( q[1] * q[3] - q[0] * q[2] ), ( sqw + sqx - sqy - sqz ) );
-    out[2] = Math.asin(  clamp( 2 * ( q[0] * q[1] + q[2] * q[3] ), -1, 1 ) );
-  } else if ( order === 'XZY' ) {
-    out[0] = Math.atan2( 2 * ( q[0] * q[3] + q[1] * q[2] ), ( sqw - sqx + sqy - sqz ) );
-    out[1] = Math.atan2( 2 * ( q[0] * q[2] + q[1] * q[3] ), ( sqw + sqx - sqy - sqz ) );
-    out[2] = Math.asin(  clamp( 2 * ( q[2] * q[3] - q[0] * q[1] ), -1, 1 ) );
-  } else {
-    console.log('No order given for quaternion to euler conversion.');
-    return;
-  }
-}
-
 var lastMove = 0;
 
 function onFrame(gl, event) {
-  if(!map || !playerMover) { return; }
+  if(!map || !playerMover) {
+    return;
+  }
 
   // Update player movement @ 60hz
   // The while ensures that we update at a fixed rate even if the rendering bogs down
@@ -186,28 +146,26 @@ function drawFrame(gl) {
   map.draw(leftViewMat, leftProjMat);
 }
 
-  var pressed = new Array(128);
-  var cameraMat = mat4.create();
+var pressed = new Array(128);
+var cameraMat = mat4.create();
 
-  function moveLookLocked(xDelta, yDelta) {
-    zAngle += xDelta*0.0025;
-    while (zAngle < 0)
+function moveLookLocked(xDelta, yDelta) {
+  zAngle += xDelta*0.0025;
+
+  while (zAngle < 0)
     zAngle += Math.PI*2;
-    while (zAngle >= Math.PI*2)
+
+  while (zAngle >= Math.PI*2)
     zAngle -= Math.PI*2;
 
-    xAngle += yDelta*0.0025;
-    while (xAngle < -Math.PI*0.5)
+  xAngle += yDelta*0.0025;
+
+  while (xAngle < -Math.PI*0.5)
     xAngle = -Math.PI*0.5;
-    while (xAngle > Math.PI*0.5)
+  while (xAngle > Math.PI*0.5)
     xAngle = Math.PI*0.5;
-  }
+}
 
-  function filterDeadzone(value) {
-    return Math.abs(value) > 0.35 ? value : 0;
-  }
-
-var vrEuler = vec3.create();
 function moveViewOriented(dir, frameTime) {
   if (dir[0] !== 0 || dir[1] !== 0 || dir[2] !== 0) {
     mat4.identity(cameraMat);
@@ -247,239 +205,242 @@ function updateInput(frameTime) {
 
   moveViewOriented(dir, frameTime);
 }
-
   // Set up event handling
-  function initEvents() {
-    var movingModel = false;
-    var lastX = 0;
-    var lastY = 0;
-    var lastMoveX = 0;
-    var lastMoveY = 0;
-    var viewport = document.getElementById("viewport");
-    var viewportFrame = document.getElementById("viewport-frame");
+function initEvents() {
+  var movingModel = false;
+  var lastX = 0;
+  var lastY = 0;
+  var lastMoveX = 0;
+  var lastMoveY = 0;
+  var viewport = document.getElementById("viewport");
+  var viewportFrame = document.getElementById("viewport-frame");
 
-    document.addEventListener("keydown", function(event) {
-      if(event.keyCode == 32 && !pressed[32]) {
-        playerMover.jump();
-      }
-      pressed[event.keyCode] = true;
-      if ((event.keyCode == 'W'.charCodeAt(0) ||
+  document.addEventListener("keydown", function(event) {
+    if(event.keyCode == 32 && !pressed[32]) {
+      playerMover.jump();
+    }
+    pressed[event.keyCode] = true;
+    if ((event.keyCode == 'W'.charCodeAt(0) ||
       event.keyCode == 'S'.charCodeAt(0) ||
       event.keyCode == 'A'.charCodeAt(0) ||
       event.keyCode == 'D'.charCodeAt(0) ||
       event.keyCode == 32) && !event.ctrlKey) {
-        event.preventDefault();
-      }
-    }, false);
-
-    document.addEventListener("keypress", function(event) {
-      if(event.charCode == 'R'.charCodeAt(0) || event.charCode == 'r'.charCodeAt(0)) {
-        respawnPlayer(-1);
-      }
-    }, false);
-
-    document.addEventListener("keyup", function(event) {
-      pressed[event.keyCode] = false;
-    }, false);
-
-    function startLook(x, y) {
-      movingModel = true;
-
-      lastX = x;
-      lastY = y;
+      event.preventDefault();
     }
+  }, false);
 
-    function endLook() {
-      movingModel = false;
+  document.addEventListener("keypress", function(event) {
+    if(event.charCode == 'R'.charCodeAt(0) || event.charCode == 'r'.charCodeAt(0)) {
+      respawnPlayer(-1);
     }
+  }, false);
 
-    function moveLook(x, y) {
-      var xDelta = x - lastX;
-      var yDelta = y - lastY;
-      lastX = x;
-      lastY = y;
+  document.addEventListener("keyup", function(event) {
+    pressed[event.keyCode] = false;
+  }, false);
 
-      if (movingModel) {
-        moveLookLocked(xDelta, yDelta);
-      }
+  function startLook(x, y) {
+    movingModel = true;
+    lastX = x;
+    lastY = y;
+  }
+
+  function endLook() {
+    movingModel = false;
+  }
+
+  function moveLook(x, y) {
+    var xDelta = x - lastX;
+    var yDelta = y - lastY;
+    lastX = x;
+    lastY = y;
+
+    if (movingModel) {
+      moveLookLocked(xDelta, yDelta);
+    }    }
+
+  function startMove(x, y) {
+    lastMoveX = x;
+    lastMoveY = y;
+  }
+
+  function moveUpdate(x, y, frameTime) {
+    var xDelta = x - lastMoveX;
+    var yDelta = y - lastMoveY;
+    lastMoveX = x;
+    lastMoveY = y;
+
+    var dir = [xDelta, yDelta * -1, 0];
+
+    moveViewOriented(dir, frameTime*2);
+  }
+
+  viewport.addEventListener("click", function(event) {
+    viewport.requestPointerLock();
+  }, false);
+
+  // Mouse handling code
+  // When the mouse is pressed it rotates the players view
+  viewport.addEventListener("mousedown", function(event) {
+    if(event.which == 1) {
+      startLook(event.pageX, event.pageY);
     }
+  }, false);
 
-    function startMove(x, y) {
-      lastMoveX = x;
-      lastMoveY = y;
+  viewport.addEventListener("mouseup", function(event) {
+    endLook();
+  }, false);
+
+  viewportFrame.addEventListener("mousemove", function(event) {
+    if(document.pointerLockElement) {
+      moveLookLocked(event.movementX, event.movementY);
+    } else {
+      moveLook(event.pageX, event.pageY);
     }
+  }, false);
 
-    function moveUpdate(x, y, frameTime) {
-      var xDelta = x - lastMoveX;
-      var yDelta = y - lastMoveY;
-      lastMoveX = x;
-      lastMoveY = y;
-
-      var dir = [xDelta, yDelta * -1, 0];
-
-      moveViewOriented(dir, frameTime*2);
-    }
-
-    viewport.addEventListener("click", function(event) {
-      viewport.requestPointerLock();
-    }, false);
-
-    // Mouse handling code
-    // When the mouse is pressed it rotates the players view
-    viewport.addEventListener("mousedown", function(event) {
-      if(event.which == 1) {
-        startLook(event.pageX, event.pageY);
-      }
-    }, false);
-    viewport.addEventListener("mouseup", function(event) {
-      endLook();
-    }, false);
-    viewportFrame.addEventListener("mousemove", function(event) {
-      if(document.pointerLockElement) {
-        moveLookLocked(event.movementX, event.movementY);
-      } else {
-        moveLook(event.pageX, event.pageY);
-      }
-    }, false);
-
-    // Touch handling code
-    viewport.addEventListener('touchstart', function(event) {
-      var touches = event.touches;
-      switch(touches.length) {
-        case 1: // Single finger looks around
+  // Touch handling code
+  viewport.addEventListener('touchstart', function(event) {
+    var touches = event.touches;
+    switch(touches.length) {
+      case 1: // Single finger looks around
         startLook(touches[0].pageX, touches[0].pageY);
         break;
-        case 2: // Two fingers moves
+      case 2: // Two fingers moves
         startMove(touches[0].pageX, touches[0].pageY);
         break;
-        case 3: // Three finger tap jumps
+      case 3: // Three finger tap jumps
         playerMover.jump();
         break;
-        default:
+      default:
         return;
-      }
-      event.stopPropagation();
-      event.preventDefault();
-    }, false);
-    viewport.addEventListener('touchend', function(event) {
-      endLook();
-      return false;
-    }, false);
-    viewport.addEventListener('touchmove', function(event) {
-      var touches = event.touches;
-      switch(touches.length) {
-        case 1:
+    }
+    event.stopPropagation();
+    event.preventDefault();
+  }, false);
+
+  viewport.addEventListener('touchend', function(event) {
+    endLook();
+    return false;
+  }, false);
+
+  viewport.addEventListener('touchmove', function(event) {
+    var touches = event.touches;
+    switch(touches.length) {
+      case 1:
         moveLook(touches[0].pageX, touches[0].pageY);
         break;
-        case 2:
+
+      case 2:
         moveUpdate(touches[0].pageX, touches[0].pageY, 16);
         break;
-        default:
+
+      default:
         return;
-      }
-      event.stopPropagation();
-      event.preventDefault();
-    }, false);
-  }
+    }
+    event.stopPropagation();
+    event.preventDefault();
+  }, false);
+}
 
   // Utility function that tests a list of webgl contexts and returns when one can be created
   // Hopefully this future-proofs us a bit
-  function getAvailableContext(canvas, contextList) {
-    if (canvas.getContext) {
-      for(var i = 0; i < contextList.length; ++i) {
-        try {
-          var context = canvas.getContext(contextList[i], { antialias:false });
-          if(context !== null)
+function getAvailableContext(canvas, contextList) {
+  if (canvas.getContext) {
+    for(var i = 0; i < contextList.length; ++i) {
+      try {
+        var context = canvas.getContext(contextList[i], { antialias:false });
+        if(context !== null)
           return context;
-        } catch(ex) { }
+      } catch (ex) {
+        console.log(ex); // eslint-disable-line
       }
     }
-    return null;
   }
+  return null;
+}
 
 function renderLoop(gl) {
-    var startTime = new Date().getTime();
-    var lastTimestamp = startTime;
-    let timestamp = null;
+  var startTime = new Date().getTime();
+  var lastTimestamp = startTime;
+  let timestamp = null;
 
-    var frameId = 0;
+  var frameId = 0;
 
-    function onRequestedFrame(){
-      timestamp = new Date().getTime();
+  function onRequestedFrame(){
+    timestamp = new Date().getTime();
 
-      window.requestAnimationFrame(onRequestedFrame);
-
-      frameId++;
-
-      if (SKIP_FRAMES != 0 && frameId % SKIP_FRAMES != 0)
-        return;
-
-      onFrame(gl, {
-        timestamp: timestamp,
-        elapsed: timestamp - startTime,
-        frameTime: timestamp - lastTimestamp
-      });
-    }
     window.requestAnimationFrame(onRequestedFrame);
-  }
 
-  function main() {
-    var canvas = document.getElementById("viewport");
+    frameId++;
+
+    if (SKIP_FRAMES != 0 && frameId % SKIP_FRAMES != 0)
+      return;
+
+    onFrame(gl, {
+      timestamp: timestamp,
+      elapsed: timestamp - startTime,
+      frameTime: timestamp - lastTimestamp
+    });
+  }
+  window.requestAnimationFrame(onRequestedFrame);
+}
+
+function main() {
+  var canvas = document.getElementById("viewport");
 
     // Get the GL Context (try 'webgl' first, then fallback)
-    var gl = getAvailableContext(canvas, ['webgl', 'experimental-webgl']);
+  var gl = getAvailableContext(canvas, ['webgl', 'experimental-webgl']);
 
-    onResize = function() {
-        var devicePixelRatio = window.devicePixelRatio || 1;
+  onResize = function() {
+    var devicePixelRatio = window.devicePixelRatio || 1;
 
-        if(document.fullscreenElement) {
-          canvas.width = screen.width * devicePixelRatio;
-          canvas.height = screen.height * devicePixelRatio;
-        } else {
-          canvas.width = canvas.clientWidth * devicePixelRatio;
-          canvas.height = canvas.clientHeight * devicePixelRatio;
-        }
-
-        gl.viewport(0, 0, canvas.width, canvas.height);
-        mat4.perspective(leftProjMat, 45.0, canvas.width/canvas.height, 1.0, 4096.0);
-    }
-
-    if(!gl) {
-      document.getElementById('viewport-frame').style.display = 'none';
-      document.getElementById('webgl-error').style.display = 'block';
+    if(document.fullscreenElement) {
+      canvas.width = screen.width * devicePixelRatio;
+      canvas.height = screen.height * devicePixelRatio;
     } else {
-      initEvents();
-      initGL(gl, canvas);
-      renderLoop(gl);
+      canvas.width = canvas.clientWidth * devicePixelRatio;
+      canvas.height = canvas.clientHeight * devicePixelRatio;
     }
 
-    onResize();
-    window.addEventListener("resize", onResize, false);
+    gl.viewport(0, 0, canvas.width, canvas.height);
+    mat4.perspective(leftProjMat, 45.0, canvas.width/canvas.height, 1.0, 4096.0);
+  };
 
-    var showFPS = document.getElementById("showFPS");
-    showFPS.addEventListener("change", function() {
-      stats.domElement.style.display = showFPS.checked ? "block" : "none";
-    });
+  if (!gl) {
+    document.getElementById('viewport-frame').style.display = 'none';
+    document.getElementById('webgl-error').style.display = 'block';
+  } else {
+    initEvents();
+    initGL(gl, canvas);
+    renderLoop(gl);
+  }
 
+  onResize();
+  window.addEventListener("resize", onResize, false);
 
 
 // Handle fullscreen transition
-var viewportFrame = document.getElementById("viewport-frame");
-var viewport = document.getElementById("viewport");
-document.addEventListener("fullscreenchange", function() {
-  if(document.fullscreenElement) {
-    viewport.requestPointerLock(); // Attempt to lock the mouse automatically on fullscreen
-  }
-  onResize();
-}, false);
+  var viewportFrame = document.getElementById("viewport-frame");
+  var viewport = document.getElementById("viewport");
 
-// Fullscreen
-function goFullscreen() {
-  viewportFrame.requestFullScreen();
+  document.addEventListener("fullscreenchange", function() {
+    if(document.fullscreenElement) {
+      viewport.requestPointerLock(); // Attempt to lock the mouse automatically on fullscreen
+    }
+    onResize();
+  }, false);
+
+  // Fullscreen
+  function goFullscreen() {
+    viewportFrame.requestFullScreen();
+  }
+
+  var fullscreenButton = document.getElementById('fullscreenBtn');
+  var mobileFullscreenBtn = document.getElementById("mobileFullscreenBtn");
+  
+  fullscreenButton.addEventListener('click', goFullscreen, false);
+  mobileFullscreenBtn.addEventListener('click', goFullscreen, false);
 }
-var fullscreenButton = document.getElementById('fullscreenBtn');
-var mobileFullscreenBtn = document.getElementById("mobileFullscreenBtn");
-fullscreenButton.addEventListener('click', goFullscreen, false);
-mobileFullscreenBtn.addEventListener('click', goFullscreen, false);
-}
+
 window.addEventListener("load", main); // Fire this once the page is loaded up

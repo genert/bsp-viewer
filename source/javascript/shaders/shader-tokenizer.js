@@ -12,11 +12,11 @@ export default class {
   }
 
   EOF () {
-    if(this.tokens === null) {
+    if (this.tokens === null) {
       return true;
     }
 
-    var token = this.tokens[this.offset];
+    let token = this.tokens[this.offset];
 
     while (token === '' && this.offset < this.tokens.length) {
       this.offset++;
@@ -27,11 +27,11 @@ export default class {
   }
 
   next () {
-    if(this.tokens === null) {
+    if (this.tokens === null) {
       return;
     }
 
-    var token = '';
+    let token = '';
 
     while (token === '' && this.offset < this.tokens.length) {
       token = this.tokens[this.offset++];
@@ -41,11 +41,11 @@ export default class {
   }
 
   prev () {
-    if(this.tokens === null) {
+    if (this.tokens === null) {
       return;
     }
 
-    var token = '';
+    let token = '';
 
     while (token === '' && this.offset >= 0) {
       token = this.tokens[this.offset--];

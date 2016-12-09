@@ -4,6 +4,7 @@ export default function(lump, src) {
     let elements = [];
 
     src.seek(lump.offset);
+    
     for (let i = 0; i < count; ++i) {
       elements.push({
         plane: src.readLong(),

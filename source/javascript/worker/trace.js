@@ -1,12 +1,37 @@
 //
 // BSP Collision Detection
 //
+import { vec3 } from 'gl-matrix';
 
-function trace(traceId, start, end, radius, slide) {
-  if(!radius) { radius = 0; }
-  if(!slide) { slide = false; }
+let planes = null;
+let brushSides = null;
+let leaves = null;
+let leafBrushes = null;
+let brushes = null;
+let shaders = null;
+let nodes = null;
 
-  if (!brushSides) { return end; }
+export default function trace(traceId, start, end, radius, slide, _brushSides, _leaves, _leafBrushes, _brushes, _shaders, _nodes, _planes) {
+  if(!radius) {
+    radius = 0;
+  }
+
+  if(!slide) {
+    slide = false;
+  }
+
+  brushSides = _brushSides;
+
+  if (!brushSides) {
+    return end;
+  }
+
+  leaves = _leaves;
+  leafBrushes = _leafBrushes;
+  brushes = _brushes;
+  shaders = _shaders,
+  nodes = _nodes;
+  planes = _planes;
 
   var output = {
     startsOut: true,
@@ -17,14 +42,15 @@ function trace(traceId, start, end, radius, slide) {
 
   traceNode(0, 0, 1, start, end, radius, output);
 
-  if(output.fraction != 1) { // collided with something
-    if(slide && output.plane) {
-      var endDist = Math.abs(vec3.dot( end, output.plane.normal ) - (output.plane.distance + radius + 0.03125));
-      for (var i = 0; i < 3; i++) {
+  if (output.fraction != 1) { // collided with something
+    if (slide && output.plane) {
+      var endDist = Math.abs(vec3.dot(end, output.plane.normal) - (output.plane.distance + radius + 0.03125));
+
+      for (let i = 0; i < 3; i++) {
         end[i] = end[i] + endDist * (output.plane.normal[i]);
       }
     } else {
-      for (var i = 0; i < 3; i++) {
+      for (let i = 0; i < 3; i++) {
         end[i] = start[i] + output.fraction * (end[i] - start[i]);
       }
     }
@@ -35,16 +61,16 @@ function trace(traceId, start, end, radius, slide) {
     traceId: traceId,
     end: end
   });
-};
+}
 
-function traceNode(nodeIdx, startFraction, endFraction, start, end, radius, output) {
+function traceNode (nodeIdx, startFraction, endFraction, start, end, radius, output) {
   if (nodeIdx < 0) { // Leaf node?
     var leaf = leaves[-(nodeIdx + 1)];
     for (var i = 0; i < leaf.leafBrushCount; i++) {
       var brush = brushes[leafBrushes[leaf.leafBrush + i]];
       var shader = shaders[brush.shader];
       if (brush.brushSideCount > 0 && (shader.contents & 1)) {
-        q3bsp.traceBrush(brush, start, end, radius, output);
+        traceBrush(brush, start, end, radius, output);
       }
     }
     return;
@@ -58,9 +84,9 @@ function traceNode(nodeIdx, startFraction, endFraction, start, end, radius, outp
   var endDist = vec3.dot(plane.normal, end) - plane.distance;
 
   if (startDist >= radius && endDist >= radius) {
-    q3bsp.traceNode(node.children[0], startFraction, endFraction, start, end, radius, output );
+    traceNode(node.children[0], startFraction, endFraction, start, end, radius, output );
   } else if (startDist < -radius && endDist < -radius) {
-    q3bsp.traceNode(node.children[1], startFraction, endFraction, start, end, radius, output );
+    traceNode(node.children[1], startFraction, endFraction, start, end, radius, output );
   } else {
     var side;
     var fraction1, fraction2, middleFraction;
@@ -68,12 +94,12 @@ function traceNode(nodeIdx, startFraction, endFraction, start, end, radius, outp
 
     if (startDist < endDist) {
       side = 1; // back
-      var iDist = 1 / (startDist - endDist);
+      let iDist = 1 / (startDist - endDist);
       fraction1 = (startDist - radius + 0.03125) * iDist;
       fraction2 = (startDist + radius + 0.03125) * iDist;
     } else if (startDist > endDist) {
       side = 0; // front
-      var iDist = 1 / (startDist - endDist);
+      let iDist = 1 / (startDist - endDist);
       fraction1 = (startDist + radius + 0.03125) * iDist;
       fraction2 = (startDist - radius - 0.03125) * iDist;
     } else {
@@ -89,21 +115,21 @@ function traceNode(nodeIdx, startFraction, endFraction, start, end, radius, outp
 
     middleFraction = startFraction + (endFraction - startFraction) * fraction1;
 
-    for (var i = 0; i < 3; i++) {
+    for (let i = 0; i < 3; i++) {
       middle[i] = start[i] + fraction1 * (end[i] - start[i]);
     }
 
-    q3bsp.traceNode(node.children[side], startFraction, middleFraction, start, middle, radius, output );
+    traceNode(node.children[side], startFraction, middleFraction, start, middle, radius, output );
 
     middleFraction = startFraction + (endFraction - startFraction) * fraction2;
 
-    for (var i = 0; i < 3; i++) {
+    for (let i = 0; i < 3; i++) {
       middle[i] = start[i] + fraction2 * (end[i] - start[i]);
     }
 
-    q3bsp.traceNode(node.children[side===0?1:0], middleFraction, endFraction, middle, end, radius, output );
+    traceNode(node.children[side===0?1:0], middleFraction, endFraction, middle, end, radius, output );
   }
-};
+}
 
 function traceBrush(brush, start, end, radius, output) {
   var startFraction = -1;
@@ -127,22 +153,22 @@ function traceBrush(brush, start, end, radius, output) {
     if (startDist <= 0 && endDist <= 0) { continue; }
 
     if (startDist > endDist) { // line is entering into the brush
-      var fraction = (startDist - 0.03125) / (startDist - endDist);
+      let fraction = (startDist - 0.03125) / (startDist - endDist);
       if (fraction > startFraction) {
         startFraction = fraction;
         collisionPlane = plane;
       }
     } else { // line is leaving the brush
-      var fraction = (startDist + 0.03125) / (startDist - endDist);
+      let fraction = (startDist + 0.03125) / (startDist - endDist);
       if (fraction < endFraction)
-      endFraction = fraction;
+        endFraction = fraction;
     }
   }
 
   if (startsOut === false) {
     output.startsOut = false;
     if (endsOut === false)
-    output.allSolid = true;
+      output.allSolid = true;
     return;
   }
 
@@ -150,7 +176,7 @@ function traceBrush(brush, start, end, radius, output) {
     if (startFraction > -1 && startFraction < output.fraction) {
       output.plane = collisionPlane;
       if (startFraction < 0)
-      startFraction = 0;
+        startFraction = 0;
       output.fraction = startFraction;
     }
   }
