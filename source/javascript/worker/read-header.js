@@ -7,12 +7,10 @@ export default function (source) {
     };
 
     for (let i = 0; i < 17; ++i) {
-      let lump = {
+      header.lumps.push({
         offset: source.readULong(),
         length: source.readULong()
-      };
-
-      header.lumps.push(lump);
+      });
     }
 
     if (header.tag !== 'IBSP' || header.version !== 46) {

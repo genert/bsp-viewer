@@ -2,46 +2,7 @@
 * q3shader.js - Parses Quake 3 shader files (.shader)
 */
 import shaderBuilder from './shader-builder';
-//
-// Shader Tokenizer
-//
-
-const shaderTokenizer = function(src) {
-  // Strip out comments
-  src = src.replace(/\/\/.*$/mg, ''); // C++ style (//...)
-  src = src.replace(/\/\*[^*\/]*\*\//mg, ''); // C style (/*...*/) (Do the shaders even use these?)
-  this.tokens = src.match(/[^\s\n\r\"]+/mg);
-
-  this.offset = 0;
-};
-
-shaderTokenizer.prototype.EOF = function() {
-  if(this.tokens === null) { return true; }
-  var token = this.tokens[this.offset];
-  while(token === '' && this.offset < this.tokens.length) {
-    this.offset++;
-    token = this.tokens[this.offset];
-  }
-  return this.offset >= this.tokens.length;
-};
-
-shaderTokenizer.prototype.next = function() {
-  if(this.tokens === null) { return ; }
-  var token = '';
-  while(token === '' && this.offset < this.tokens.length) {
-    token = this.tokens[this.offset++];
-  }
-  return token;
-};
-
-shaderTokenizer.prototype.prev = function() {
-  if(this.tokens === null) { return ; }
-  var token = '';
-  while(token === '' && this.offset >= 0) {
-    token = this.tokens[this.offset--];
-  }
-  return token;
-};
+import shaderTokenizer from './shader-tokenizer';
 
 //
 // Shader Loading

@@ -8,8 +8,20 @@ html(lang="en", dir="ltr")
     meta(http-equiv="X-UA-Compatible", content="IE=edge")
 
     link(rel="stylesheet", media="all", href="/assets/stylesheet/main.css")
+  body
+    h2#mapTitle
+    #viewport-frame
+      canvas#viewport
+        | Sorry, but your browser does not support WebGL or does not have it enabled.
+        | To get a WebGL-enabled browser, please see:
+        a(href='http://get.webgl.org/', target='_blank') http://get.webgl.org/
+      #loading Loading...
+    #webgl-error(style='display: none; text-align: center; vertical-align: middle;') Sorry, but your browser does not support WebGL or does not have it enabled.
+      br
+      | To get a WebGL-enabled browser, please see:
+      a(href='http://get.webgl.org/', target='_blank') http://get.webgl.org/
+    img#mobileVrBtn(style='display: none;', src='images/vr_goggles_sm.png')
+    img#mobileFullscreenBtn(src='images/fullscreen_sm.png')
 
     script(src="/polyfill.min.js")
     script(src="/main.bundle.js")
-  body
-    h1 Hello word

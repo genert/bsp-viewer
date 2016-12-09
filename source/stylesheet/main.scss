@@ -3,3 +3,12 @@ $body-background: #eee;
 body {
     background: $body-background;
 }
+
+canvas {
+    width: 854px * 2;
+    height: 480px * 2;
+    cursor: move;
+    text-align: center;
+    background-color: black;
+    display: none;
+}

@@ -7,7 +7,7 @@ export default function(lump, src) {
     src.seek(lump.offset);
 
     for (let i = 0; i < faceCount; ++i) {
-      const face = {
+      faces.push({
         shader: src.readLong(),
         effect: src.readLong(),
         type: src.readLong(),
@@ -26,9 +26,7 @@ export default function(lump, src) {
         normal: [ src.readFloat(), src.readFloat(), src.readFloat() ],
         size: [ src.readLong(), src.readLong() ],
         indexOffset: -1
-      };
-
-      faces.push(face);
+      });
     }
 
     success(faces);

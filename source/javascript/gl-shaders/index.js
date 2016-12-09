@@ -29,61 +29,64 @@
 // Default Shaders
 //
 
-const q3bsp_default_vertex = '\
-#ifdef GL_ES \n\
-precision highp float; \n\
-#endif \n\
-attribute vec3 position; \n\
-attribute vec3 normal; \n\
-attribute vec2 texCoord; \n\
-attribute vec2 lightCoord; \n\
-attribute vec4 color; \n\
-\n\
-varying vec2 vTexCoord; \n\
-varying vec2 vLightmapCoord; \n\
-varying vec4 vColor; \n\
-\n\
-uniform mat4 modelViewMat; \n\
-uniform mat4 projectionMat; \n\
-\n\
-void main(void) { \n\
-  vec4 worldPosition = modelViewMat * vec4(position, 1.0); \n\
-  vTexCoord = texCoord; \n\
-  vColor = color; \n\
-  vLightmapCoord = lightCoord; \n\
-  gl_Position = projectionMat * worldPosition; \n\
-} \n\
-';
+const q3bsp_default_vertex = `
+#ifdef GL_ES
+precision highp float;
+#endif
 
-const q3bsp_default_fragment = '\
-#ifdef GL_ES \n\
-precision highp float; \n\
-#endif \n\
-varying vec2 vTexCoord; \n\
-varying vec2 vLightmapCoord; \n\
-uniform sampler2D texture; \n\
-uniform sampler2D lightmap; \n\
-\n\
-void main(void) { \n\
-  vec4 diffuseColor = texture2D(texture, vTexCoord); \n\
-  vec4 lightColor = texture2D(lightmap, vLightmapCoord); \n\
-  gl_FragColor = vec4(diffuseColor.rgb * lightColor.rgb, diffuseColor.a); \n\
-} \n\
-';
+attribute vec3 position;
+attribute vec3 normal;
+attribute vec2 texCoord;
+attribute vec2 lightCoord;
+attribute vec4 color;
 
-const q3bsp_model_fragment = '\
-#ifdef GL_ES \n\
-precision highp float; \n\
-#endif \n\
-varying vec2 vTexCoord; \n\
-varying vec4 vColor; \n\
-uniform sampler2D texture; \n\
-\n\
-void main(void) { \n\
-  vec4 diffuseColor = texture2D(texture, vTexCoord); \n\
-  gl_FragColor = vec4(diffuseColor.rgb * vColor.rgb, diffuseColor.a); \n\
-} \n\
-';
+varying vec2 vTexCoord;
+varying vec2 vLightmapCoord;
+varying vec4 vColor;
+
+uniform mat4 modelViewMat;
+uniform mat4 projectionMat;
+
+void main(void) {
+  vec4 worldPosition = modelViewMat * vec4(position, 1.0);
+  vTexCoord = texCoord;
+  vColor = color;
+  vLightmapCoord = lightCoord;
+  gl_Position = projectionMat * worldPosition;
+}
+`;
+
+const q3bsp_default_fragment = `
+#ifdef GL_ES
+precision highp float;
+#endif
+
+varying vec2 vTexCoord;
+varying vec2 vLightmapCoord;
+uniform sampler2D texture;
+uniform sampler2D lightmap;
+
+void main(void) {
+  vec4 diffuseColor = texture2D(texture, vTexCoord);
+  vec4 lightColor = texture2D(lightmap, vLightmapCoord);
+  gl_FragColor = vec4(diffuseColor.rgb * lightColor.rgb, diffuseColor.a);
+}
+`;
+
+const q3bsp_model_fragment = `
+#ifdef GL_ES
+precision highp float;
+#endif
+
+varying vec2 vTexCoord;
+varying vec4 vColor;
+uniform sampler2D texture;
+
+void main(void) {
+  vec4 diffuseColor = texture2D(texture, vTexCoord);
+  gl_FragColor = vec4(diffuseColor.rgb * vColor.rgb, diffuseColor.a);
+}
+`;
 
 import { mat4 } from 'gl-matrix';
 
@@ -112,7 +115,7 @@ q3glshader.init = function(gl, lightmap) {
     gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.LINEAR_MIPMAP_NEAREST);
     gl.generateMipmap(gl.TEXTURE_2D);
   };
-  image.src = '/webgl/no-shader.png';
+  image.src = '/no-shader.png';
 
   // Load default stage
   q3glshader.defaultShader = q3glshader.buildDefault(gl);
@@ -423,3 +426,5 @@ q3glshader.compileShaderProgram = function(gl, vertexSrc, fragmentSrc) {
 
   return shaderProgram;
 };
+
+export default q3glshader;

@@ -6,7 +6,7 @@ export default function (lump, source) {
     source.seek(lump.offset);
 
     for (let i = 0; i < count; ++i) {
-      const shader = {
+      elements.push({
         shaderName: source.readString(64),
         flags: source.readLong(),
         contents: source.readLong(),
@@ -15,9 +15,7 @@ export default function (lump, source) {
         indexOffset: 0,
         elementCount: 0,
         visible: true
-      };
-
-      elements.push(shader);
+      });
     }
 
     success(elements);
