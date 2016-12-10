@@ -244,24 +244,39 @@ textures/gothic_trim/x_noblight
 	}
 }
 
-textures/base_light/ceil1_37
+// WolfET
+textures/skies/sd_batterysky
 {
 	surfaceparm nomarks
 	q3map_surfacelight 10000
 	light 1
+
 	// Modified light blue ceil light from Q2
 	{
 		map $lightmap
 		rgbGen identity
 	}
 	{
-		map textures/base_light/ceil1_37.tga
+		map textures/skies_sd/battery_clouds.tga
 		blendFunc GL_DST_COLOR GL_ZERO
 		rgbGen identity
 	}
 	{
-		map textures/base_light/ceil1_37.blend.tga
+		map textures/skies_sd/battery_clouds.tga
 		blendfunc GL_ONE GL_ONE
+	}
+}
+
+textures/pilsner/sur_074
+{
+	surfaceparm nomarks
+	q3map_surfacelight 10000
+	light 1
+
+	{
+		map textures/pilsner/sur_074.jpg
+		blendFunc GL_DST_COLOR GL_ZERO
+		rgbGen identity
 	}
 }
 

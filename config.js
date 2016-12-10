@@ -20,7 +20,7 @@ export default {
   modulesDir: modulesDir,
 
   files: {
-    entry: path.join(sourceDir, 'files', '*.*'),
+    entry: path.join(sourceDir, 'files', '**', '*.*'),
     output: path.join(buildDir)
   },
 
@@ -66,7 +66,7 @@ export default {
       files: path.join('images', '**', '*.{jpg,jpeg,gif,png,svg}'),
       tasks: ['images']
     }, {
-      files: path.join('files', '*.*'),
+      files: path.join('files', '**', '*.*'),
       tasks: ['files']
     }, {
       files: path.join('stylesheet', '**', '*.{css,scss,sass}'),

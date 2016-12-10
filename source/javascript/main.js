@@ -1,7 +1,8 @@
 import BSP from './bsp';
 
-var mapName = 'q3tourney2';
-var mapShaders = ['demo.shaders'];
+var mapShaders = [
+  'demo.shaders'
+];
 
 // ===========================================
 // Everything below here is common to all maps
@@ -71,7 +72,7 @@ var lastIndex = 0;
 // "Respawns" the player at a specific spawn point. Passing -1 will move the player to the next spawn point.
 function respawnPlayer(index) {
   if(map.entities && playerMover) {
-    /*if(index == -1) {
+    if(index == -1) {
       index = (lastIndex+1)% map.entities.info_player_deathmatch.length;
     }
     lastIndex = index;
@@ -84,9 +85,9 @@ function respawnPlayer(index) {
       spawnPoint = map.entities.info_player_deathmatch[index];
     } else if (map.enities.team_CTF_redspawn[index]) {
       spawnPoint = map.entities.team_CTF_redspawn[index];
-    }*/
+    }
 
-    let spawnPoint = map.entities.team_CTF_redspawn[_random(0, 15)];
+    //let spawnPoint = map.entities.team_CTF_redspawn[_random(0, 15)];
 
     playerMover.position = [
       spawnPoint.origin[0],

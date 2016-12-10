@@ -3,6 +3,10 @@
 
 ## Resources
 1. [Unofficial Quake 3 Map Specs ](http://www.mralligator.com/q3/)
+2. [Compiling Maps](http://wiki.splashdamage.com/index.php/Compiling_Maps)
+
+## Credits
+Based on Quake 3 viewer.
 
 ## Contributions & Issues
 Contributions are welcome. Please clearly explain the purpose of the PR and follow the current style.

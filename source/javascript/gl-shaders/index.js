@@ -75,8 +75,9 @@ q3glshader.build = function(gl, shader) {
 };
 
 q3glshader.buildDefault = function(gl, surface) {
+  console.log(surface);
   var diffuseStage = {
-    map: (surface ? surface.shaderName + '.png' : null),
+    map: (surface ? surface.shaderName + '.jpg' : null),
     isLightmap: false,
     blendSrc: gl.ONE,
     blendDest: gl.ZERO,
@@ -118,20 +119,20 @@ q3glshader.loadShaderMaps = function(gl, surface, shader) {
 };
 
 q3glshader.loadTexture = function(gl, surface, stage) {
-  if(!stage.map) {
+  if (!stage.map) {
     stage.texture = q3glshader.white;
     return;
-  } else if(stage.map == '$lightmap' && config.LIGHTMAPS_ENABLED) {
+  } else if (stage.map == '$lightmap') {
     stage.texture = (surface.geomType != 3 ? q3glshader.lightmap : q3glshader.white);
     return;
-  } else if(stage.map == '$whiteimage') {
+  } else if (stage.map == '$whiteimage') {
     stage.texture = q3glshader.white;
     return;
   }
 
   stage.texture = q3glshader.defaultTexture;
 
-  if(stage.map == 'anim') {
+  if (stage.map == 'anim') {
     stage.animTexture = [];
     for(var i = 0; i < stage.animMaps.length; ++i) {
       var animLoad = function(i) {
@@ -153,20 +154,6 @@ q3glshader.loadTexture = function(gl, surface, stage) {
 //
 // Render state setup
 //
-
-q3glshader.setShader = function(gl, shader) {
-  if(!shader) {
-    gl.enable(gl.CULL_FACE);
-    gl.cullFace(gl.BACK);
-  } else if(shader.cull && !shader.sky) {
-    gl.enable(gl.CULL_FACE);
-    gl.cullFace(shader.cull);
-  } else {
-    gl.disable(gl.CULL_FACE);
-  }
-
-  return true;
-};
 
 q3glshader.setShaderStage = function(gl, shader, shaderStage, time) {
   var stage = shaderStage;

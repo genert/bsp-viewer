@@ -15,8 +15,6 @@ export default function (source) {
       });
     }
 
-    console.log(config.ENGINE);
-
     if (header.tag !== 'IBSP' || header.version !== config.ENGINE) {
       postMessage({
         type: 'status',

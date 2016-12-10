@@ -3,6 +3,8 @@ import q3glshader from '../gl-shaders';
 import loadMapShaders from '../shaders';
 import BSPTree from './bsp-tree';
 import createSolidTexture from '../gl-shaders/create-solid-texture';
+import setShader from '../gl-shaders/set-shader';
+import TGALoader from '../common/tga-loader';
 
 const Worker = require('worker-loader!./../worker');
 
@@ -18,14 +20,12 @@ export default class q3bsp {
     this.onbsp = null;
     this.onentitiesloaded = null;
 
-    var map = this;
-
     this.showLoadStatus();
 
     // Spawn the web worker
     this.worker = new Worker;
-    this.worker.onmessage = function(msg) {
-      map.onMessage(msg);
+    this.worker.onmessage = (message) => {
+      this.onMessage(message);
     };
 
     this.worker.onerror = (message) => {
@@ -92,7 +92,7 @@ export default class q3bsp {
       case 'bsp':
         this.bspTree = new BSPTree(message.data.bsp);
 
-        if(this.onbsp) {
+        if (this.onbsp) {
           this.onbsp(this.bspTree);
         }
 
@@ -139,19 +139,17 @@ export default class q3bsp {
   }
 
   loadShaders (sources) {
-    var map = this;
-
-    for(var i = 0; i < sources.length; ++i) {
+    for (let i = 0; i < sources.length; ++i) {
       sources[i] = '/' + sources[i];
     }
 
-    loadMapShaders(sources, function(shaders) {
-      map.buildShaders(shaders);
+    loadMapShaders(sources, (shaders) => {
+      this.buildShaders(shaders);
     });
   }
 
   buildBuffers (vertices, indices) {
-    var gl = this.gl;
+    const gl = this.gl;
 
     this.vertexBuffer = gl.createBuffer();
     gl.bindBuffer(gl.ARRAY_BUFFER, this.vertexBuffer);
@@ -235,7 +233,7 @@ export default class q3bsp {
   }
 
   processEntities (entities) {
-    if(this.onentitiesloaded) {
+    if (this.onentitiesloaded) {
       this.onentitiesloaded(entities);
     }
   }
@@ -248,9 +246,35 @@ export default class q3bsp {
     gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.LINEAR);
     gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.LINEAR_MIPMAP_LINEAR);
 
+    console.log(lightmaps);
+
+    if (lightmaps.length === 0) {
+      for (let i = 0; i < 4; i++) {
+        const tga = new TGALoader();
+
+        tga.open('/maps/pilsner/lm_000' + i + '.tga', () => {
+          const x = 0;
+          const y = 0;
+          const width = 256;
+          const height = 256;
+
+          gl.texSubImage2D(
+            gl.TEXTURE_2D, 0, x, y, width, height,
+            gl.RGBA, gl.UNSIGNED_BYTE, tga.getImageData().data
+          );
+        });
+      }
+    }
+
     for (let i = 0; i < lightmaps.length; i++) {
+      const lightmap = lightmaps[i];
+      const x = lightmap.x ? lightmap.x : 0;
+      const y = lightmap.y ? lightmap.y : 0;
+      const width = lightmap.width ? lightmap.width : 256;
+      const height = lightmap.height ? lightmap.height : 256;
+
       gl.texSubImage2D(
-        gl.TEXTURE_2D, 0, lightmaps[i].x, lightmaps[i].y, lightmaps[i].width, lightmaps[i].height,
+        gl.TEXTURE_2D, 0, x, y, width, height,
         gl.RGBA, gl.UNSIGNED_BYTE, new Uint8Array(lightmaps[i].bytes)
       );
     }
@@ -420,7 +444,7 @@ export default class q3bsp {
         gl.bindBuffer(gl.ARRAY_BUFFER, this.skyboxBuffer);
 
         // Render Skybox
-        if (q3glshader.setShader(gl, this.skyShader)) {
+        if (setShader(gl, this.skyShader)) {
           for(var j = 0; j < this.skyShader.stages.length; ++j) {
             var stage = this.skyShader.stages[j];
 
@@ -454,7 +478,7 @@ export default class q3bsp {
       if (this.defaultSurfaces.length > 0 || this.unshadedSurfaces.length > 0) {
         // Setup State
         var shader = q3glshader.defaultShader;
-        q3glshader.setShader(gl, shader);
+        setShader(gl, shader);
         let shaderProgram = q3glshader.setShaderStage(gl, shader, shader.stages[0], time);
         this.bindShaderAttribs(shaderProgram);
 
@@ -500,7 +524,7 @@ export default class q3bsp {
       if (this.modelSurfaces.length > 0) {
         // Setup State
         let shader = this.modelSurfaces[0].shader;
-        q3glshader.setShader(gl, shader);
+        setShader(gl, shader);
 
         let shaderProgram = q3glshader.setShaderStage(gl, shader, shader.stages[0], time);
 
@@ -544,7 +568,7 @@ export default class q3bsp {
           shader = q3glshader.defaultShader;
         }
 
-        if (!q3glshader.setShader(gl, shader)) {
+        if (!setShader(gl, shader)) {
           continue;
         }
 

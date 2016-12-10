@@ -4,9 +4,11 @@ const ENGINES = {
 };
 
 const config = {
-  // BSP related.
   ENGINE: ENGINES.WOLFET,
-  MAP: 'pilsner.bsp',
+
+  // Map related
+  MAP: 'maps/pilsner.bsp',
+  SHADERS: ['demo.shaders'],
 
   // Rendering related.
   LIGHTMAPS_ENABLED: false,

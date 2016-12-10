@@ -6,9 +6,7 @@ export default function (gl, cull) {
   switch (cull.toLowerCase()) {
     case 'disable':
     case 'none': return null;
-
     case 'front': return gl.BACK;
-    
     case 'back':
     default: return gl.FRONT;
   }

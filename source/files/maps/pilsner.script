@@ -1,0 +1,55 @@
+game_manager
+{
+	spawn
+	{
+		wait 200
+	
+		wm_axis_respawntime	1
+		wm_allied_respawntime 1
+		wm_set_round_timelimit 15
+
+		// Stopwatch mode defending team (0=Axis, 1=Allies)
+		wm_set_defending_team 0
+
+		// Winner on expiration of round timer (0=Axis, 1=Allies, -1=Nobody)
+		//this must be set to 0 or 1 or the round will not end
+		//the timelimit_hit trigger will change it later
+
+		wm_setwinner 0 
+
+		setautospawn "Axis Spawn" 0
+		setautospawn "Allied Spawn" 1
+		
+	}
+	
+	trigger timelimit_hit
+	{
+		trigger pilsner_bottle show	
+		
+		//i have no idea what im doing but it works
+		wm_setwinner -1
+		wait 250
+		wm_setwinner -1
+
+	}
+}
+
+pilsner_bottle
+{
+	spawn
+	{
+		wait 200
+		setstate pilsner_bottle invisible
+	}
+
+	trigger show
+	{
+		wm_announce "Bottle show"
+		togglespeaker beer
+		setstate pilsner_bottle default
+		wait 100
+		gotomarker path2 50
+		gotomarker path1 50
+		gotomarker path3 1000
+	}
+}
