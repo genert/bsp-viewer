@@ -2,6 +2,7 @@ import { mat4 } from 'gl-matrix';
 import q3glshader from '../gl-shaders';
 import loadMapShaders from '../shaders';
 import BSPTree from './bsp-tree';
+import createSolidTexture from '../gl-shaders/create-solid-texture';
 
 const Worker = require('worker-loader!./../worker');
 
@@ -40,7 +41,7 @@ export default class q3bsp {
     this.vertexBuffer = null;
     this.indexBuffer = null;
     this.indexCount = 0;
-    this.lightmap = q3glshader.createSolidTexture(gl, [255,255,255,255]);
+    this.lightmap = createSolidTexture(gl, [255,255,255,255]);
     this.surfaces = null;
     this.shaders = {};
 
@@ -129,13 +130,10 @@ export default class q3bsp {
     loading.style.display = 'none';
   }
 
-  load (url, tesselationLevel) {
-    if(!tesselationLevel) {
-      tesselationLevel = 5;
-    }
+  load (url, tesselationLevel = 5) {
     this.worker.postMessage({
       type: 'load',
-      url: '/q3tourney2.bsp',
+      url: url,
       tesselationLevel: tesselationLevel
     });
   }

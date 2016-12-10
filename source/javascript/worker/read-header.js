@@ -1,3 +1,5 @@
+import config from '../config';
+
 export default function (source) {
   return new Promise((success, failure) => {
     let header = {
@@ -13,7 +15,9 @@ export default function (source) {
       });
     }
 
-    if (header.tag !== 'IBSP' || header.version !== 46) {
+    console.log(config.ENGINE);
+
+    if (header.tag !== 'IBSP' || header.version !== config.ENGINE) {
       postMessage({
         type: 'status',
         message: 'Wrong BSP type!'

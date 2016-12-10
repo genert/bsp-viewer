@@ -37,6 +37,8 @@ function initGL(gl) {
   initMap(gl);
 }
 
+import config from './config';
+
 // Load the map
 function initMap(gl) {
   map = new BSP(gl);
@@ -44,7 +46,8 @@ function initMap(gl) {
   map.onbsp = initPlayerMover;
   //map.onsurfaces = initSurfaces;
   map.loadShaders(mapShaders);
-  map.load('maps/' + mapName +'.bsp', 5);
+
+  map.load(`/${config.MAP}`, 5);
 }
 
 // Process entities loaded from the map
@@ -61,20 +64,34 @@ function initPlayerMover(bsp) {
   onResize();
 }
 
+import _has from 'lodash/has';
+import _random from 'lodash/random';
+
 var lastIndex = 0;
 // "Respawns" the player at a specific spawn point. Passing -1 will move the player to the next spawn point.
 function respawnPlayer(index) {
   if(map.entities && playerMover) {
-    if(index == -1) {
+    /*if(index == -1) {
       index = (lastIndex+1)% map.entities.info_player_deathmatch.length;
     }
     lastIndex = index;
 
-    var spawnPoint = map.entities.info_player_deathmatch[index];
+    console.log(map.entities);
+
+    let spawnPoint = null;
+
+    if (_has(map.entities, 'info_player_deathmatch')) {
+      spawnPoint = map.entities.info_player_deathmatch[index];
+    } else if (map.enities.team_CTF_redspawn[index]) {
+      spawnPoint = map.entities.team_CTF_redspawn[index];
+    }*/
+
+    let spawnPoint = map.entities.team_CTF_redspawn[_random(0, 15)];
+
     playerMover.position = [
       spawnPoint.origin[0],
       spawnPoint.origin[1],
-      spawnPoint.origin[2]+30 // Start a little ways above the floor
+      spawnPoint.origin[2]+20 // Start a little ways above the floor
     ];
 
     playerMover.velocity = [0,0,0];
@@ -438,7 +455,7 @@ function main() {
 
   var fullscreenButton = document.getElementById('fullscreenBtn');
   var mobileFullscreenBtn = document.getElementById("mobileFullscreenBtn");
-  
+
   fullscreenButton.addEventListener('click', goFullscreen, false);
   mobileFullscreenBtn.addEventListener('click', goFullscreen, false);
 }

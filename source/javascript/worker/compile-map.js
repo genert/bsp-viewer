@@ -1,4 +1,5 @@
 import tesselate from '../common/tesselate';
+import config from '../config';
 
 export default function (verts, faces, meshVerts, lightmaps, shaders, tesselationLevel) {
   return new Promise((success) => {
@@ -9,9 +10,9 @@ export default function (verts, faces, meshVerts, lightmaps, shaders, tesselatio
 
     // Per-face operations
     for (let i = 0; i < faces.length; ++i) {
-      let face = faces[i];
+      const face = faces[i];
 
-      if (face.type==1 || face.type==2 || face.type==3) {
+      if (face.type === 1 || face.type === 2 || face.type === 3) {
         // Add face to the appropriate texture face list
         var shader = shaders[face.shader];
         shader.faces.push(face);
@@ -22,13 +23,19 @@ export default function (verts, faces, meshVerts, lightmaps, shaders, tesselatio
         }
 
         // If face type is polygon (1) or mesh (3), transform lightmap coords to match position in combined texture.
-        if (face.type==1 || face.type==3) {
+        if (face.type === 1 || face.type === 3) {
           shader.geomType = face.type;
-          for(let j = 0; j < face.meshVertCount; ++j) {
+
+          for (let j = 0; j < face.meshVertCount; ++j) {
             let vert = verts[face.vertex + meshVerts[face.meshVert + j]];
 
-            vert.lmNewCoord[0] = (vert.lmCoord[0] * lightmap.xScale) + lightmap.x;
-            vert.lmNewCoord[1] = (vert.lmCoord[1] * lightmap.yScale) + lightmap.y;
+            if (config.ENGINE === config.ENGINES.QUAKE3) {
+              vert.lmNewCoord[0] = (vert.lmCoord[0] * lightmap.xScale) + lightmap.x;
+              vert.lmNewCoord[1] = (vert.lmCoord[1] * lightmap.yScale) + lightmap.y;
+            } else if (config.ENGINE === config.ENGINES.WOLFET) {
+              vert.lmNewCoord[0] = (vert.lmCoord[0] * 0.25);
+              vert.lmNewCoord[1] = (vert.lmCoord[1] * 0.25);
+            }
           }
         } else {
           // Tesselate either patch (2) or billboard (4) faces.
@@ -43,8 +50,13 @@ export default function (verts, faces, meshVerts, lightmaps, shaders, tesselatio
           for (let j = 0; j < face.vertCount; ++j) {
             let vert = verts[face.vertex + j];
 
-            vert.lmNewCoord[0] = (vert.lmCoord[0] * lightmap.xScale) + lightmap.x;
-            vert.lmNewCoord[1] = (vert.lmCoord[1] * lightmap.yScale) + lightmap.y;
+            if (config.ENGINE === config.ENGINES.QUAKE3) {
+              vert.lmNewCoord[0] = (vert.lmCoord[0] * lightmap.xScale) + lightmap.x;
+              vert.lmNewCoord[1] = (vert.lmCoord[1] * lightmap.yScale) + lightmap.y;
+            } else if (config.ENGINE === config.ENGINES.WOLFET) {
+              vert.lmNewCoord[0] = (vert.lmCoord[0] * 0.25);
+              vert.lmNewCoord[1] = (vert.lmCoord[1] * 0.25);
+            }
           }
         }
       }

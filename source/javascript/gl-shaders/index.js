@@ -3,6 +3,13 @@
 //
 import { DEFAULT_VERTEX_SHADER, DEFAULT_FRAGMENT_SHADER, DEFAULT_MODEL_FRAGMENT } from './default-shaders';
 import { mat4 } from 'gl-matrix';
+import config from '../config';
+import translateDepthFunc from './translate-depth-func';
+import translateCull from './translate-cull';
+import translateBlend from './translate-blend';
+import createSolidTexture from './create-solid-texture';
+import loadTextureByURL from './load-texture-by-url';
+import compileShaderProgram from './compile-shader-program';
 
 var q3glshader = {};
 
@@ -13,12 +20,15 @@ q3glshader.defaultTexture = null;
 q3glshader.texMat = mat4.create();
 q3glshader.defaultProgram = null;
 
-q3glshader.init = function(gl, lightmap) {
-  q3glshader.lightmap = lightmap;
-  q3glshader.white = q3glshader.createSolidTexture(gl, [255,255,255,255]);
+q3glshader.init = function(gl, lightmap = null) {
+  if (config.LIGHTMAPS_ENABLED) {
+    q3glshader.lightmap = lightmap;
+  }
 
-  q3glshader.defaultProgram = q3glshader.compileShaderProgram(gl, DEFAULT_VERTEX_SHADER, DEFAULT_FRAGMENT_SHADER);
-  q3glshader.modelProgram = q3glshader.compileShaderProgram(gl, DEFAULT_VERTEX_SHADER, DEFAULT_MODEL_FRAGMENT);
+  q3glshader.white = createSolidTexture(gl, [255,255,255,255]);
+
+  q3glshader.defaultProgram = compileShaderProgram(gl, DEFAULT_VERTEX_SHADER, DEFAULT_FRAGMENT_SHADER);
+  q3glshader.modelProgram = compileShaderProgram(gl, DEFAULT_VERTEX_SHADER, DEFAULT_MODEL_FRAGMENT);
 
   var image = new Image();
   q3glshader.defaultTexture = gl.createTexture();
@@ -41,7 +51,7 @@ q3glshader.init = function(gl, lightmap) {
 
 q3glshader.build = function(gl, shader) {
   var glShader = {
-    cull: q3glshader.translateCull(gl, shader.cull),
+    cull: translateCull(gl, shader.cull),
     sort: shader.sort,
     sky: shader.sky,
     blend: shader.blend,
@@ -54,9 +64,9 @@ q3glshader.build = function(gl, shader) {
     var glStage = stage;
 
     glStage.texture = null;
-    glStage.blendSrc = q3glshader.translateBlend(gl, stage.blendSrc);
-    glStage.blendDest = q3glshader.translateBlend(gl, stage.blendDest);
-    glStage.depthFunc = q3glshader.translateDepthFunc(gl, stage.depthFunc);
+    glStage.blendSrc = translateBlend(gl, stage.blendSrc);
+    glStage.blendDest = translateBlend(gl, stage.blendDest);
+    glStage.depthFunc = translateDepthFunc(gl, stage.depthFunc);
 
     glShader.stages.push(glStage);
   }
@@ -90,57 +100,19 @@ q3glshader.buildDefault = function(gl, surface) {
   return glShader;
 };
 
-q3glshader.translateDepthFunc = function(gl, depth) {
-  if(!depth) { return gl.LEQUAL; }
-  switch(depth.toLowerCase()) {
-    case 'gequal': return gl.GEQUAL;
-    case 'lequal': return gl.LEQUAL;
-    case 'equal': return gl.EQUAL;
-    case 'greater': return gl.GREATER;
-    case 'less': return gl.LESS;
-    default: return gl.LEQUAL;
-  }
-};
-
-q3glshader.translateCull = function(gl, cull) {
-  if(!cull) { return gl.FRONT; }
-  switch(cull.toLowerCase()) {
-    case 'disable':
-    case 'none': return null;
-    case 'front': return gl.BACK;
-    case 'back':
-    default: return gl.FRONT;
-  }
-};
-
-q3glshader.translateBlend = function(gl, blend) {
-  if(!blend) { return gl.ONE; }
-  switch(blend.toUpperCase()) {
-    case 'GL_ONE': return gl.ONE;
-    case 'GL_ZERO': return gl.ZERO;
-    case 'GL_DST_COLOR': return gl.DST_COLOR;
-    case 'GL_ONE_MINUS_DST_COLOR': return gl.ONE_MINUS_DST_COLOR;
-    case 'GL_SRC_ALPHA ': return gl.SRC_ALPHA;
-    case 'GL_ONE_MINUS_SRC_ALPHA': return gl.ONE_MINUS_SRC_ALPHA;
-    case 'GL_SRC_COLOR': return gl.SRC_COLOR;
-    case 'GL_ONE_MINUS_SRC_COLOR': return gl.ONE_MINUS_SRC_COLOR;
-    default: return gl.ONE;
-  }
-};
-
 //
 // Texture loading
 //
 
 q3glshader.loadShaderMaps = function(gl, surface, shader) {
-  for(var i = 0; i < shader.stages.length; ++i) {
+  for (var i = 0; i < shader.stages.length; ++i) {
     var stage = shader.stages[i];
     if(stage.map) {
       q3glshader.loadTexture(gl, surface, stage);
     }
 
-    if(stage.shaderSrc && !stage.program) {
-      stage.program = q3glshader.compileShaderProgram(gl, stage.shaderSrc.vertex, stage.shaderSrc.fragment);
+    if (stage.shaderSrc && !stage.program) {
+      stage.program = compileShaderProgram(gl, stage.shaderSrc.vertex, stage.shaderSrc.fragment);
     }
   }
 };
@@ -149,7 +121,7 @@ q3glshader.loadTexture = function(gl, surface, stage) {
   if(!stage.map) {
     stage.texture = q3glshader.white;
     return;
-  } else if(stage.map == '$lightmap') {
+  } else if(stage.map == '$lightmap' && config.LIGHTMAPS_ENABLED) {
     stage.texture = (surface.geomType != 3 ? q3glshader.lightmap : q3glshader.white);
     return;
   } else if(stage.map == '$whiteimage') {
@@ -164,7 +136,7 @@ q3glshader.loadTexture = function(gl, surface, stage) {
     for(var i = 0; i < stage.animMaps.length; ++i) {
       var animLoad = function(i) {
         stage.animTexture[i] = q3glshader.defaultTexture;
-        q3glshader.loadTextureUrl(gl, stage, stage.animMaps[i], function(texture) {
+        loadTextureByURL(gl, stage, stage.animMaps[i], function(texture) {
           stage.animTexture[i] = texture;
         });
       };
@@ -172,38 +144,10 @@ q3glshader.loadTexture = function(gl, surface, stage) {
     }
     stage.animFrame = 0;
   } else {
-    q3glshader.loadTextureUrl(gl, stage, stage.map, function(texture) {
+    loadTextureByURL(gl, stage, stage.map, function(texture) {
       stage.texture = texture;
     });
   }
-};
-
-q3glshader.loadTextureUrl = function(gl, stage, url, onload) {
-  var image = new Image();
-  image.onload = function() {
-    var texture = gl.createTexture();
-    gl.bindTexture(gl.TEXTURE_2D, texture);
-    gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, gl.RGBA, gl.UNSIGNED_BYTE, image);
-    gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.LINEAR);
-    gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.LINEAR_MIPMAP_NEAREST);
-    if(stage.clamp) {
-      gl.texParameterf(gl.TEXTURE_2D, gl.TEXTURE_WRAP_S, gl.CLAMP_TO_EDGE );
-      gl.texParameterf(gl.TEXTURE_2D, gl.TEXTURE_WRAP_T, gl.CLAMP_TO_EDGE );
-    }
-    gl.generateMipmap(gl.TEXTURE_2D);
-    onload(texture);
-  };
-  image.src = '/' + url;
-};
-
-q3glshader.createSolidTexture = function(gl, color) {
-  var data = new Uint8Array(color);
-  var texture = gl.createTexture();
-  gl.bindTexture(gl.TEXTURE_2D, texture);
-  gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGB, 1, 1, 0, gl.RGB, gl.UNSIGNED_BYTE, data);
-  gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.NEAREST);
-  gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.NEAREST);
-  return texture;
 };
 
 //
@@ -266,7 +210,7 @@ q3glshader.setShaderStage = function(gl, shader, shaderStage, time) {
   gl.uniform1i(program.uniform.texture, 0);
   gl.bindTexture(gl.TEXTURE_2D, texture);
 
-  if(program.uniform.lightmap) {
+  if(program.uniform.lightmap && config.LIGHTMAPS_ENABLED) {
     gl.activeTexture(gl.TEXTURE1);
     gl.uniform1i(program.uniform.lightmap, 1);
     gl.bindTexture(gl.TEXTURE_2D, q3glshader.lightmap);
@@ -277,62 +221,6 @@ q3glshader.setShaderStage = function(gl, shader, shaderStage, time) {
   }
 
   return program;
-};
-
-//
-// Shader program compilation
-//
-
-q3glshader.compileShaderProgram = function(gl, vertexSrc, fragmentSrc) {
-  var fragmentShader = gl.createShader(gl.FRAGMENT_SHADER);
-  gl.shaderSource(fragmentShader, fragmentSrc);
-  gl.compileShader(fragmentShader);
-
-  if (!gl.getShaderParameter(fragmentShader, gl.COMPILE_STATUS)) {
-    /*console.debug(gl.getShaderInfoLog(fragmentShader));
-    console.debug(vertexSrc);
-    console.debug(fragmentSrc);*/
-    gl.deleteShader(fragmentShader);
-    return null;
-  }
-
-  var vertexShader = gl.createShader(gl.VERTEX_SHADER);
-  gl.shaderSource(vertexShader, vertexSrc);
-  gl.compileShader(vertexShader);
-
-  if (!gl.getShaderParameter(vertexShader, gl.COMPILE_STATUS)) {
-    gl.deleteShader(vertexShader);
-    return null;
-  }
-
-  var shaderProgram = gl.createProgram();
-  gl.attachShader(shaderProgram, vertexShader);
-  gl.attachShader(shaderProgram, fragmentShader);
-  gl.linkProgram(shaderProgram);
-
-  if (!gl.getProgramParameter(shaderProgram, gl.LINK_STATUS)) {
-    gl.deleteProgram(shaderProgram);
-    gl.deleteShader(vertexShader);
-    gl.deleteShader(fragmentShader);
-    return null;
-  }
-
-  var i, attrib, uniform;
-  var attribCount = gl.getProgramParameter(shaderProgram, gl.ACTIVE_ATTRIBUTES);
-  shaderProgram.attrib = {};
-  for (i = 0; i < attribCount; i++) {
-    attrib = gl.getActiveAttrib(shaderProgram, i);
-    shaderProgram.attrib[attrib.name] = gl.getAttribLocation(shaderProgram, attrib.name);
-  }
-
-  var uniformCount = gl.getProgramParameter(shaderProgram, gl.ACTIVE_UNIFORMS);
-  shaderProgram.uniform = {};
-  for (i = 0; i < uniformCount; i++) {
-    uniform = gl.getActiveUniform(shaderProgram, i);
-    shaderProgram.uniform[uniform.name] = gl.getUniformLocation(shaderProgram, uniform.name);
-  }
-
-  return shaderProgram;
 };
 
 export default q3glshader;
