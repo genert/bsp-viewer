@@ -27,21 +27,20 @@ class Targa {
   * @param {function} callback - callback to trigger when the file is loaded
   */
   open (path, callback) {
-    var req, tga = this;
-
-    req = new XMLHttpRequest();
+    const req = new XMLHttpRequest();
 
     req.open('GET', path, true);
     req.responseType = 'arraybuffer';
+    
+    req.addEventListener('load', () => {
+      if (req.status === 200) {
+        this.load(new Uint8Array(req.response));
 
-    req.onload = function() {
-      if (this.status === 200) {
-        tga.load(new Uint8Array(req.response));
         if (callback) {
-          callback.call(tga);
+          callback.call(this);
         }
       }
-    };
+    });
 
     req.send(null);
   }
@@ -179,6 +178,7 @@ class Targa {
     }
 
     getImageData(imageData.data, this.imageData, this.palette, width, y_start, y_step, y_end, x_start, x_step, x_end);
+
     return imageData;
   }
 
@@ -313,7 +313,7 @@ function getImageData8bits (imageData, indexes, colormap, width, y_start, y_step
   for (let i = 0, y = y_start; y !== y_end; y += y_step) {
     for (let x = x_start; x !== x_end; x += x_step, i++) {
       let color = indexes[i];
-      
+
       imageData[(x + width * y) * 4 + 3] = 255;
       imageData[(x + width * y) * 4 + 2] = colormap[(color * 3) + 0];
       imageData[(x + width * y) * 4 + 1] = colormap[(color * 3) + 1];
@@ -339,7 +339,7 @@ function getImageData8bits (imageData, indexes, colormap, width, y_start, y_step
 * @param {number} x_end   - stop at pixel x.
 * @returns {Array} imageData
 */
-function getImageData16bits(imageData, pixels, colormap, width, y_start, y_step, y_end, x_start, x_step, x_end) {
+function getImageData16bits (imageData, pixels, colormap, width, y_start, y_step, y_end, x_start, x_step, x_end) {
   for (let i = 0, y = y_start; y !== y_end; y += y_step) {
     for (let x = x_start; x !== x_end; x += x_step, i += 2) {
       let color = pixels[i + 0] | (pixels[i + 1] << 8);
@@ -369,7 +369,7 @@ function getImageData16bits(imageData, pixels, colormap, width, y_start, y_step,
 * @param {number} x_end   - stop at pixel x.
 * @returns {Array} imageData
 */
-function getImageData24bits(imageData, pixels, colormap, width, y_start, y_step, y_end, x_start, x_step, x_end) {
+function getImageData24bits (imageData, pixels, colormap, width, y_start, y_step, y_end, x_start, x_step, x_end) {
   for (let i = 0, y = y_start; y !== y_end; y += y_step) {
     for (let x = x_start; x !== x_end; x += x_step, i += 3) {
       imageData[(x + width * y) * 4 + 3] = 255;
@@ -397,7 +397,7 @@ function getImageData24bits(imageData, pixels, colormap, width, y_start, y_step,
 * @param {number} x_end   - stop at pixel x.
 * @returns {Array} imageData
 */
-function getImageData32bits(imageData, pixels, colormap, width, y_start, y_step, y_end, x_start, x_step, x_end) {
+function getImageData32bits (imageData, pixels, colormap, width, y_start, y_step, y_end, x_start, x_step, x_end) {
   for (let i = 0, y = y_start; y !== y_end; y += y_step) {
     for (let x = x_start; x !== x_end; x += x_step, i += 4) {
       imageData[(x + width * y) * 4 + 2] = pixels[i + 0];
@@ -426,7 +426,7 @@ function getImageData32bits(imageData, pixels, colormap, width, y_start, y_step,
 * @param {number} x_end   - stop at pixel x.
 * @returns {Array} imageData
 */
-function getImageDataGrey8bits(imageData, pixels, colormap, width, y_start, y_step, y_end, x_start, x_step, x_end) {
+function getImageDataGrey8bits (imageData, pixels, colormap, width, y_start, y_step, y_end, x_start, x_step, x_end) {
   for (let i = 0, y = y_start; y !== y_end; y += y_step) {
     for (let x = x_start; x !== x_end; x += x_step, i++) {
       let color = pixels[i];
@@ -456,7 +456,7 @@ function getImageDataGrey8bits(imageData, pixels, colormap, width, y_start, y_st
 * @param {number} x_end   - stop at pixel x.
 * @returns {Array} imageData
 */
-function getImageDataGrey16bits(imageData, pixels, colormap, width, y_start, y_step, y_end, x_start, x_step, x_end) {
+function getImageDataGrey16bits (imageData, pixels, colormap, width, y_start, y_step, y_end, x_start, x_step, x_end) {
   for (let i = 0, y = y_start; y !== y_end; y += y_step) {
     for (let x = x_start; x !== x_end; x += x_step, i += 2) {
       imageData[(x + width * y) * 4 + 0] = pixels[i + 0];
