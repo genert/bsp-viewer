@@ -161,7 +161,7 @@ export default class q3bsp {
 
     this.indexCount = indices.length;
 
-    var skyVerts = [
+    const skyVerts = [
       -128, 128, 128, 0, 0,
       128, 128, 128, 1, 0,
       -128, -128, 128, 0, 1,
@@ -188,7 +188,7 @@ export default class q3bsp {
       -128, -128, -128, 0, 1
     ];
 
-    var skyIndices = [
+    const skyIndices = [
       0, 1, 2,
       1, 2, 3,
 
@@ -316,7 +316,7 @@ export default class q3bsp {
 
     const interval = setInterval(() => {
       // Have we processed all surfaces?
-      if(this.unshadedSurfaces.length === 0) {
+      if (this.unshadedSurfaces.length === 0) {
         // Sort to ensure correct order of transparent objects
         this.effectSurfaces.sort(function(a, b) {
           var order = a.shader.sort - b.shader.sort;
@@ -331,10 +331,10 @@ export default class q3bsp {
       const surface = this.unshadedSurfaces.shift();
       const shader = this.shaders[surface.shaderName];
 
-      if(!shader) {
+      if (!shader) {
         surface.shader = q3glshader.buildDefault(this.gl, surface);
 
-        if(surface.geomType == 3) {
+        if (surface.geomType == 3) {
           surface.shader.model = true;
           this.modelSurfaces.push(surface);
         } else {
@@ -438,19 +438,18 @@ export default class q3bsp {
     // Loop through all shaders, drawing all surfaces associated with them
     if (this.surfaces.length > 0) {
       // If we have a skybox, render it first
-      if(this.skyShader) {
+      if (this.skyShader) {
         // SkyBox Buffers
         gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, this.skyboxIndexBuffer);
         gl.bindBuffer(gl.ARRAY_BUFFER, this.skyboxBuffer);
 
         // Render Skybox
         if (setShader(gl, this.skyShader)) {
-          for(var j = 0; j < this.skyShader.stages.length; ++j) {
-            var stage = this.skyShader.stages[j];
+          for (let j = 0; j < this.skyShader.stages.length; ++j) {
+            const stage = this.skyShader.stages[j];
+            const shaderProgram = q3glshader.setShaderStage(gl, this.skyShader, stage, time);
 
-            var shaderProgram = q3glshader.setShaderStage(gl, this.skyShader, stage, time);
-
-            if(!shaderProgram) {
+            if (!shaderProgram) {
               continue;
             }
 
@@ -488,12 +487,12 @@ export default class q3bsp {
         this.bindShaderMatrix(shaderProgram, leftViewMat, leftProjMat);
         this.setViewport(leftViewport);
 
-        for(i = 0; i < this.unshadedSurfaces.length; ++i) {
+        for (i = 0; i < this.unshadedSurfaces.length; ++i) {
           var surface = this.unshadedSurfaces[i];
           gl.drawElements(gl.TRIANGLES, surface.elementCount, gl.UNSIGNED_SHORT, surface.indexOffset);
         }
 
-        for(i = 0; i < this.defaultSurfaces.length; ++i) {
+        for (i = 0; i < this.defaultSurfaces.length; ++i) {
           let surface = this.defaultSurfaces[i];
           let stage = surface.shader.stages[0];
           gl.bindTexture(gl.TEXTURE_2D, stage.texture);
@@ -506,12 +505,13 @@ export default class q3bsp {
 
           this.bindShaderMatrix(shaderProgram, rightViewMat, rightProjMat);
           this.setViewport(rightViewport);
-          for(i = 0; i < this.unshadedSurfaces.length; ++i) {
+
+          for (i = 0; i < this.unshadedSurfaces.length; ++i) {
             let surface = this.unshadedSurfaces[i];
             gl.drawElements(gl.TRIANGLES, surface.elementCount, gl.UNSIGNED_SHORT, surface.indexOffset);
           }
 
-          for(i = 0; i < this.defaultSurfaces.length; ++i) {
+          for (i = 0; i < this.defaultSurfaces.length; ++i) {
             let surface = this.defaultSurfaces[i];
             let stage = surface.shader.stages[0];
             gl.bindTexture(gl.TEXTURE_2D, stage.texture);
@@ -534,7 +534,7 @@ export default class q3bsp {
         this.bindShaderMatrix(shaderProgram, leftViewMat, leftProjMat);
         this.setViewport(leftViewport);
 
-        for(i = 0; i < this.modelSurfaces.length; ++i) {
+        for (i = 0; i < this.modelSurfaces.length; ++i) {
           let surface = this.modelSurfaces[i];
           let stage = surface.shader.stages[0];
 
@@ -559,7 +559,10 @@ export default class q3bsp {
       // Effect surfaces
       for (let i = 0; i < this.effectSurfaces.length; ++i) {
         let surface = this.effectSurfaces[i];
-        if(surface.elementCount == 0 || surface.visible !== true) { continue; }
+
+        if (surface.elementCount == 0 || surface.visible !== true) {
+          continue;
+        }
 
         // Bind the surface shader
         let shader = surface.shader;
@@ -573,9 +576,9 @@ export default class q3bsp {
         }
 
         for (let j = 0; j < shader.stages.length; ++j) {
-          let stage = shader.stages[j];
+          const stage = shader.stages[j];
+          const shaderProgram = q3glshader.setShaderStage(gl, shader, stage, time);
 
-          let shaderProgram = q3glshader.setShaderStage(gl, shader, stage, time);
           if(!shaderProgram) {
             continue;
           }
