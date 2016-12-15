@@ -4,6 +4,7 @@
 ## Resources
 1. [Unofficial Quake 3 Map Specs ](http://www.mralligator.com/q3/)
 2. [Compiling Maps](http://wiki.splashdamage.com/index.php/Compiling_Maps)
+3. [Wolfenstein - Enemy Territory to Quake 3 Map Conversion](http://barrel.neocities.org/etconv.htm)
 
 ## Credits
 Based on Quake 3 viewer.

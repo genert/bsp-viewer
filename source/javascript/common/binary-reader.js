@@ -7,6 +7,10 @@ const bf_wuia = new Uint32Array(bf_byteBuff);
 const bf_wfa = new Float32Array(bf_byteBuff);
 
 export default class {
+  buffer = null;
+  length = null;
+  offset = null;
+
   constructor (data) {
     this.buffer = data;
     this.length = data.length;

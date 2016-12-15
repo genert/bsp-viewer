@@ -1,7 +1,7 @@
 import parseWaveform from './parse-waveform';
 
 export default function (tokens) {
-  var stage = {
+  let stage = {
     map: null,
     clamp: false,
     tcGen: 'base',
@@ -21,14 +21,18 @@ export default function (tokens) {
   };
 
   // Parse a shader
-  while(!tokens.EOF()) {
+  while (!tokens.EOF()) {
     var token = tokens.next();
-    if(token == '}') { break; }
 
-    switch(token.toLowerCase()) {
+    if (token === '}') {
+      break;
+    }
+
+    switch (token.toLowerCase()) {
       case 'clampmap':
         stage.clamp = true;
         break;
+
       case 'map':
         stage.map = tokens.next().replace(/(\.jpg|\.tga)/, '.png');
         break;
@@ -47,25 +51,32 @@ export default function (tokens) {
       case 'rgbgen':
         stage.rgbGen = tokens.next().toLowerCase();
 
-        switch(stage.rgbGen) {
+        switch (stage.rgbGen) {
           case 'wave':
             stage.rgbWaveform = parseWaveform(tokens);
-            if(!stage.rgbWaveform) { stage.rgbGen == 'identity'; }
+
+            if (!stage.rgbWaveform) {
+              stage.rgbGen == 'identity';
+            }
+
             break;
         }
-
         break;
 
       case 'alphagen':
         stage.alphaGen = tokens.next().toLowerCase();
-        switch(stage.alphaGen) {
+
+        switch (stage.alphaGen) {
           case 'wave':
             stage.alphaWaveform = parseWaveform(tokens);
-            if(!stage.alphaWaveform) { stage.alphaGen == '1.0'; }
+
+            if(!stage.alphaWaveform) {
+              stage.alphaGen == '1.0';
+            }
             break;
+
           default: break;
         }
-
         break;
 
       case 'alphafunc':
@@ -75,10 +86,12 @@ export default function (tokens) {
       case 'blendfunc':
         stage.blendSrc = tokens.next();
         stage.hasBlendFunc = true;
+
         if(!stage.depthWriteOverride) {
           stage.depthWrite = false;
         }
-        switch(stage.blendSrc) {
+
+        switch (stage.blendSrc) {
           case 'add':
             stage.blendSrc = 'GL_ONE';
             stage.blendDest = 'GL_ONE';
@@ -109,11 +122,12 @@ export default function (tokens) {
         stage.depthWriteOverride = true;
         break;
 
-      case 'tcmod':
-        var tcMod = {
+      case 'tcmod': {
+        const tcMod = {
           type: tokens.next().toLowerCase()
         };
-        switch(tcMod.type) {
+
+        switch (tcMod.type) {
           case 'rotate':
             tcMod.angle = parseFloat(tokens.next()) * (3.1415/180);
             break;
@@ -130,7 +144,11 @@ export default function (tokens) {
 
           case 'stretch':
             tcMod.waveform = parseWaveform(tokens);
-            if(!tcMod.waveform) { tcMod.type == null; }
+
+            if(!tcMod.waveform) {
+              tcMod.type == null;
+            }
+
             break;
 
           case 'turb':
@@ -144,18 +162,23 @@ export default function (tokens) {
 
           default: tcMod.type == null; break;
         }
-        if(tcMod.type) {
+
+        if (tcMod.type) {
           stage.tcMods.push(tcMod);
         }
+
         break;
+      }
+
       case 'tcgen':
         stage.tcGen = tokens.next();
         break;
+
       default: break;
     }
   }
 
-  if (stage.blendSrc == 'GL_ONE' && stage.blendDest == 'GL_ZERO') {
+  if (stage.blendSrc === 'GL_ONE' && stage.blendDest === 'GL_ZERO') {
     stage.hasBlendFunc = false;
     stage.depthWrite = true;
   }
