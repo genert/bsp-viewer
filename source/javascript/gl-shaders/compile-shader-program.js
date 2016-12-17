@@ -1,5 +1,7 @@
 export default function (gl, vertexSrc, fragmentSrc) {
-  var fragmentShader = gl.createShader(gl.FRAGMENT_SHADER);
+  // Create fragment shader.
+  const fragmentShader = gl.createShader(gl.FRAGMENT_SHADER);
+
   gl.shaderSource(fragmentShader, fragmentSrc);
   gl.compileShader(fragmentShader);
 
@@ -8,7 +10,8 @@ export default function (gl, vertexSrc, fragmentSrc) {
     return null;
   }
 
-  var vertexShader = gl.createShader(gl.VERTEX_SHADER);
+  // Create vertex shader.
+  const vertexShader = gl.createShader(gl.VERTEX_SHADER);
   gl.shaderSource(vertexShader, vertexSrc);
   gl.compileShader(vertexShader);
 
@@ -17,7 +20,8 @@ export default function (gl, vertexSrc, fragmentSrc) {
     return null;
   }
 
-  var shaderProgram = gl.createProgram();
+  // Attach shaders.
+  const shaderProgram = gl.createProgram();
   gl.attachShader(shaderProgram, vertexShader);
   gl.attachShader(shaderProgram, fragmentShader);
   gl.linkProgram(shaderProgram);
@@ -29,18 +33,22 @@ export default function (gl, vertexSrc, fragmentSrc) {
     return null;
   }
 
-  var i, attrib, uniform;
-  var attribCount = gl.getProgramParameter(shaderProgram, gl.ACTIVE_ATTRIBUTES);
+  // Set up attributes.
+  const attribCount = gl.getProgramParameter(shaderProgram, gl.ACTIVE_ATTRIBUTES);
   shaderProgram.attrib = {};
-  for (i = 0; i < attribCount; i++) {
-    attrib = gl.getActiveAttrib(shaderProgram, i);
+
+  for (let i = 0; i < attribCount; i++) {
+    let attrib = gl.getActiveAttrib(shaderProgram, i);
+
     shaderProgram.attrib[attrib.name] = gl.getAttribLocation(shaderProgram, attrib.name);
   }
 
-  var uniformCount = gl.getProgramParameter(shaderProgram, gl.ACTIVE_UNIFORMS);
+  // Set up attributes.
+  const uniformCount = gl.getProgramParameter(shaderProgram, gl.ACTIVE_UNIFORMS);
   shaderProgram.uniform = {};
-  for (i = 0; i < uniformCount; i++) {
-    uniform = gl.getActiveUniform(shaderProgram, i);
+
+  for (let i = 0; i < uniformCount; i++) {
+    let uniform = gl.getActiveUniform(shaderProgram, i);
     shaderProgram.uniform[uniform.name] = gl.getUniformLocation(shaderProgram, uniform.name);
   }
 

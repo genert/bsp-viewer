@@ -1,7 +1,6 @@
 //
 // Transforms a parsed Q3 shader definition into a set of WebGL compatible states
 //
-import { DEFAULT_VERTEX_SHADER, DEFAULT_FRAGMENT_SHADER, DEFAULT_MODEL_FRAGMENT } from './default-shaders';
 import { mat4 } from 'gl-matrix';
 import config from '../config';
 import translateDepthFunc from './translate-depth-func';
@@ -10,6 +9,10 @@ import translateBlend from './translate-blend';
 import createSolidTexture from './create-solid-texture';
 import loadTextureByURL from './load-texture-by-url';
 import compileShaderProgram from './compile-shader-program';
+
+import mainVertexShader from '../../shaders/main.vert';
+import mainFragmentShader from '../../shaders/main.frag';
+import modelFragmentShader from '../../shaders/model.frag';
 
 var q3glshader = {};
 
@@ -27,8 +30,8 @@ q3glshader.init = function(gl, lightmap = null) {
 
   q3glshader.white = createSolidTexture(gl, [255,255,255,255]);
 
-  q3glshader.defaultProgram = compileShaderProgram(gl, DEFAULT_VERTEX_SHADER, DEFAULT_FRAGMENT_SHADER);
-  q3glshader.modelProgram = compileShaderProgram(gl, DEFAULT_VERTEX_SHADER, DEFAULT_MODEL_FRAGMENT);
+  q3glshader.defaultProgram = compileShaderProgram(gl, mainVertexShader, mainFragmentShader);
+  q3glshader.modelProgram = compileShaderProgram(gl, mainVertexShader, modelFragmentShader);
 
   var image = new Image();
   q3glshader.defaultTexture = gl.createTexture();
@@ -75,7 +78,6 @@ q3glshader.build = function(gl, shader) {
 };
 
 q3glshader.buildDefault = function(gl, surface) {
-  console.log(surface);
   var diffuseStage = {
     map: (surface ? surface.shaderName + '.jpg' : null),
     isLightmap: false,
@@ -104,7 +106,6 @@ q3glshader.buildDefault = function(gl, surface) {
 //
 // Texture loading
 //
-
 q3glshader.loadShaderMaps = function(gl, surface, shader) {
   for (var i = 0; i < shader.stages.length; ++i) {
     var stage = shader.stages[i];

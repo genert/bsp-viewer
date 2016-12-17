@@ -1,5 +1,6 @@
 import webpack from 'webpack';
 import config from './config';
+import path from 'path';
 
 let plugins = [];
 
@@ -26,6 +27,9 @@ export default {
       test: /\.js$/,
       exclude: /node_modules/,
       loader: 'babel-loader'
+    }, {
+      test: /\.(glsl|vs|fs|frag|vert)$/,
+      loader: 'shader'
     }]
   },
 
@@ -34,6 +38,10 @@ export default {
     modulesDirectories: [
       config.modulesDir
     ]
+  },
+
+  glsl: {
+    chunkPath: path.join(__dirname, '/source/chunks')
   },
 
   plugins: plugins

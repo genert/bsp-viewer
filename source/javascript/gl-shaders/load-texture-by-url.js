@@ -19,5 +19,5 @@ export default function (gl, stage, url, onload) {
     onload(texture);
   };
   
-  image.src = '/' + url;
+  image.src = `/${url}`;
 }
