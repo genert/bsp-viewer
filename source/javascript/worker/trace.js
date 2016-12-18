@@ -12,11 +12,11 @@ let shaders = null;
 let nodes = null;
 
 export default function trace(traceId, start, end, radius, slide, _brushSides, _leaves, _leafBrushes, _brushes, _shaders, _nodes, _planes) {
-  if(!radius) {
+  if (!radius) {
     radius = 0;
   }
 
-  if(!slide) {
+  if (!slide) {
     slide = false;
   }
 
@@ -33,7 +33,7 @@ export default function trace(traceId, start, end, radius, slide, _brushSides, _
   nodes = _nodes;
   planes = _planes;
 
-  var output = {
+  const output = {
     startsOut: true,
     allSolid: false,
     plane: null,

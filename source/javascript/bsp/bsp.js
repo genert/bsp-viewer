@@ -4,7 +4,6 @@ import loadMapShaders from '../shaders';
 import BSPTree from './bsp-tree';
 import createSolidTexture from '../gl-shaders/create-solid-texture';
 import setShader from '../gl-shaders/set-shader';
-import TGALoader from '../common/tga-loader';
 
 const Worker = require('worker-loader!./../worker');
 
@@ -241,45 +240,27 @@ export default class q3bsp {
   buildLightmaps (size, lightmaps) {
     const gl = this.gl;
 
-    gl.bindTexture(gl.TEXTURE_2D, this.lightmap);
-    gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, size, size, 0, gl.RGBA, gl.UNSIGNED_BYTE, null);
-    gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.LINEAR);
-    gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.LINEAR_MIPMAP_LINEAR);
+    if (lightmaps.length && lightmaps.length > 0) {
+      gl.bindTexture(gl.TEXTURE_2D, this.lightmap);
+      gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, size, size, 0, gl.RGBA, gl.UNSIGNED_BYTE, null);
+      gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.LINEAR);
+      gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.LINEAR_MIPMAP_LINEAR);
 
-    console.log(lightmaps);
+      for (let i = 0; i < lightmaps.length; i++) {
+        const lightmap = lightmaps[i];
+        const x = lightmap.x ? lightmap.x : 0;
+        const y = lightmap.y ? lightmap.y : 0;
+        const width = lightmap.width ? lightmap.width : 256;
+        const height = lightmap.height ? lightmap.height : 256;
 
-    if (lightmaps.length === 0) {
-      for (let i = 0; i < 4; i++) {
-        const tga = new TGALoader();
-
-        tga.open('/maps/pilsner/lm_000' + i + '.tga', () => {
-          const x = 0;
-          const y = 0;
-          const width = 256;
-          const height = 256;
-
-          gl.texSubImage2D(
-            gl.TEXTURE_2D, 0, x, y, width, height,
-            gl.RGBA, gl.UNSIGNED_BYTE, tga.getImageData().data
-          );
-        });
+        gl.texSubImage2D(
+          gl.TEXTURE_2D, 0, x, y, width, height,
+          gl.RGBA, gl.UNSIGNED_BYTE, new Uint8Array(lightmaps[i].bytes)
+        );
       }
+
+      gl.generateMipmap(gl.TEXTURE_2D);
     }
-
-    for (let i = 0; i < lightmaps.length; i++) {
-      const lightmap = lightmaps[i];
-      const x = lightmap.x ? lightmap.x : 0;
-      const y = lightmap.y ? lightmap.y : 0;
-      const width = lightmap.width ? lightmap.width : 256;
-      const height = lightmap.height ? lightmap.height : 256;
-
-      gl.texSubImage2D(
-        gl.TEXTURE_2D, 0, x, y, width, height,
-        gl.RGBA, gl.UNSIGNED_BYTE, new Uint8Array(lightmaps[i].bytes)
-      );
-    }
-
-    gl.generateMipmap(gl.TEXTURE_2D);
 
     q3glshader.init(gl, this.lightmap);
   }

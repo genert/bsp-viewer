@@ -14,155 +14,167 @@ var xAngle = 0;
 var onResize = null;
 
 // These values are in meters
-var playerHeight = 57; // Roughly where my eyes sit (1.78 meters off the ground)
-var vrIPDScale = 32.0; // There are 32 units per meter in Quake 3
 var vrPose = null;
 
 var SKIP_FRAMES = 0;
 var REPEAT_FRAMES = 1;
 
+var lastIndex = 0;
+
 import { mat4, vec3 } from 'gl-matrix';
-
-// Set up basic GL State up front
-function initGL(gl) {
-  gl.clearColor(0.0, 0.0, 0.0, 1.0);
-  gl.clearDepth(1.0);
-
-  gl.enable(gl.DEPTH_TEST);
-  gl.enable(gl.BLEND);
-  gl.enable(gl.CULL_FACE);
-
-  leftViewMat = mat4.create();
-  leftProjMat = mat4.create();
-
-  initMap(gl);
-}
-
 import config from './config';
-
-// Load the map
-function initMap(gl) {
-  map = new BSP(gl);
-  map.onentitiesloaded = initMapEntities;
-  map.onbsp = initPlayerMover;
-  //map.onsurfaces = initSurfaces;
-  map.loadShaders(mapShaders);
-
-  map.load(`/${config.MAP}`, 5);
-}
-
-// Process entities loaded from the map
-function initMapEntities() {
-  respawnPlayer(0);
-}
-
 import q3movement from './movement';
+import _has from 'lodash/has';
 
-function initPlayerMover(bsp) {
-  playerMover = new q3movement(bsp);
-  respawnPlayer(0);
-  document.getElementById('viewport').style.display = 'block';
-  onResize();
+
+class Renderer {
+  _gl = null;
+  _canvas = null;
+
+  initialize (gl, canvas = null) {
+    this._gl = gl;
+    this._canvas = canvas;
+
+    this.initializeGL(gl);
+  }
+
+  initializeGL () {
+    const gl = this._gl;
+
+    gl.clearColor(0.0, 0.0, 0.0, 1.0);
+    gl.clearDepth(1.0);
+
+    gl.enable(gl.DEPTH_TEST);
+    gl.enable(gl.BLEND);
+    gl.enable(gl.CULL_FACE);
+
+    //gl.pixelStorei(gl.UNPACK_PREMULTIPLY_ALPHA_WEBGL, true);
+
+    leftViewMat = mat4.create();
+    leftProjMat = mat4.create();
+
+    this.initializeMap();
+  }
+
+  initializeMap () {
+    const gl = this._gl;
+
+    const initMapEntities = () => {
+      Logic.respawnPlayer(0);
+    };
+    const initPlayerMover = (bsp) => {
+      playerMover = new q3movement(bsp);
+      Logic.respawnPlayer(0);
+      document.getElementById('viewport').style.display = 'block';
+      onResize();
+    };
+
+    map = new BSP(gl);
+    map.onentitiesloaded = initMapEntities;
+    map.onbsp = initPlayerMover;
+    map.loadShaders(mapShaders);
+
+    map.load(`/${config.MAP}`, 5);
+  }
+
+  drawFrame () {
+    const gl = this._gl;
+
+    // Clear back buffer but not color buffer (we expect the entire scene to be overwritten)
+    gl.depthMask(true);
+    gl.clear(gl.DEPTH_BUFFER_BIT);
+
+    if(!map || !playerMover) {
+      return;
+    }
+
+    View.getViewMatrix(leftViewMat, vrPose, playerMover, zAngle, xAngle);
+
+    // Here's where all the magic happens...
+    map.draw(leftViewMat, leftProjMat);
+  }
+
+
+  renderLoop () {
+    const startTime = new Date().getTime();
+    const lastTimestamp = startTime;
+    let timestamp = null;
+    let frameId = 0;
+
+    const onRequestedFrame = () => {
+      timestamp = new Date().getTime();
+      frameId++;
+
+      if (SKIP_FRAMES !== 0 && frameId % SKIP_FRAMES !== 0) {
+        return;
+      }
+
+      this.onFrame({
+        timestamp: timestamp,
+        elapsed: timestamp - startTime,
+        frameTime: timestamp - lastTimestamp
+      });
+
+      window.requestAnimationFrame(onRequestedFrame);
+    };
+
+    onRequestedFrame();
+  }
+
+  onFrame (event) {
+    if (!map || !playerMover) {
+      return;
+    }
+
+    // Update player movement @ 60hz
+    // The while ensures that we update at a fixed rate even if the rendering bogs down
+    while (event.elapsed - lastMove >= 16) {
+      updateInput(16);
+      lastMove += 16;
+    }
+
+    // For great laggage!
+    for (let i = 0; i < REPEAT_FRAMES; ++i) {
+      this.drawFrame();
+    }
+  }
 }
 
-import _has from 'lodash/has';
 import _random from 'lodash/random';
 
-var lastIndex = 0;
-// "Respawns" the player at a specific spawn point. Passing -1 will move the player to the next spawn point.
-function respawnPlayer(index) {
-  if(map.entities && playerMover) {
-    if(index == -1) {
-      index = (lastIndex+1)% map.entities.info_player_deathmatch.length;
+class Logic {
+  static respawnPlayer () {
+    if (map.entities && playerMover) {
+      let spawnPoint = {
+        origin: [0, 0, 0]
+      };
+
+      if (_has(map.entities, 'info_player_deathmatch')) {
+        const spawnPointsLength = map.entities.info_player_deathmatch.length;
+        spawnPoint = map.entities.info_player_deathmatch[_random(0, spawnPointsLength - 1)];
+      } else if (_has(map.entities, 'team_CTF_redplayer')) {
+        const spawnPointsLength = map.entities.team_CTF_redplayer.length;
+        spawnPoint = map.entities.team_CTF_redplayer[_random(0, spawnPointsLength - 1)];
+      }
+
+      playerMover.position = [
+        spawnPoint.origin[0],
+        spawnPoint.origin[1],
+        spawnPoint.origin[2] + 20 // Start a little ways above the floor
+      ];
+
+      playerMover.velocity = [0,0,0];
+
+      zAngle = -(spawnPoint.angle || 0) * (3.1415/180) + (3.1415*0.5); // Negative angle in radians + 90 degrees
+      xAngle = 0;
     }
-    lastIndex = index;
-
-    console.log(map.entities);
-
-    let spawnPoint = null;
-
-    if (_has(map.entities, 'info_player_deathmatch')) {
-      spawnPoint = map.entities.info_player_deathmatch[index];
-    } else if (map.enities.team_CTF_redspawn[index]) {
-      spawnPoint = map.entities.team_CTF_redspawn[index];
-    }
-
-    //let spawnPoint = map.entities.team_CTF_redspawn[_random(0, 15)];
-
-    playerMover.position = [
-      spawnPoint.origin[0],
-      spawnPoint.origin[1],
-      spawnPoint.origin[2]+20 // Start a little ways above the floor
-    ];
-
-    playerMover.velocity = [0,0,0];
-
-    zAngle = -(spawnPoint.angle || 0) * (3.1415/180) + (3.1415*0.5); // Negative angle in radians + 90 degrees
-    xAngle = 0;
   }
 }
 
+let renderer = new Renderer();
 var lastMove = 0;
 
-function onFrame(gl, event) {
-  if(!map || !playerMover) {
-    return;
-  }
-
-  // Update player movement @ 60hz
-  // The while ensures that we update at a fixed rate even if the rendering bogs down
-  while (event.elapsed - lastMove >= 16) {
-    updateInput(16);
-    lastMove += 16;
-  }
-
-  // For great laggage!
-  for (var i = 0; i < REPEAT_FRAMES; ++i) {
-    drawFrame(gl);
-  }
-}
-
-var poseMatrix = mat4.create();
-function getViewMatrix(out, pose) {
-  mat4.identity(out);
-
-  mat4.translate(out, out, playerMover.position);
-  mat4.translate(out, out, [0, 0, playerHeight]);
-  mat4.rotateZ(out, out, -zAngle);
-  mat4.rotateX(out, out, Math.PI/2);
-
-  if (pose) {
-    var orientation = pose.orientation;
-    var position = pose.position;
-    if (!orientation) { orientation = [0, 0, 0, 1]; }
-    if (!position) { position = [0, 0, 0]; }
-
-    mat4.fromRotationTranslation(poseMatrix, orientation, [
-      position[0] * vrIPDScale,
-      position[1] * vrIPDScale,
-      position[2] * vrIPDScale
-    ]);
-
-    mat4.multiply(out, out, poseMatrix);
-  }
-
-  mat4.rotateX(out, out, -xAngle);
-  mat4.invert(out, out);
-}
-
-// Draw a single frame
-function drawFrame(gl) {
-  // Clear back buffer but not color buffer (we expect the entire scene to be overwritten)
-  gl.depthMask(true);
-  gl.clear(gl.DEPTH_BUFFER_BIT);
-
-  if(!map || !playerMover) { return; }
-
-  getViewMatrix(leftViewMat, vrPose);
-
-  // Here's where all the magic happens...
-  map.draw(leftViewMat, leftProjMat);
-}
+import View from './renderer/view';
 
 var pressed = new Array(128);
 var cameraMat = mat4.create();
@@ -249,7 +261,7 @@ function initEvents() {
 
   document.addEventListener("keypress", function(event) {
     if(event.charCode == 'R'.charCodeAt(0) || event.charCode == 'r'.charCodeAt(0)) {
-      respawnPlayer(-1);
+      Logic.respawnPlayer(-1);
     }
   }, false);
 
@@ -275,7 +287,8 @@ function initEvents() {
 
     if (movingModel) {
       moveLookLocked(xDelta, yDelta);
-    }    }
+    }
+  }
 
   function startMove(x, y) {
     lastMoveX = x;
@@ -361,54 +374,12 @@ function initEvents() {
   }, false);
 }
 
-  // Utility function that tests a list of webgl contexts and returns when one can be created
-  // Hopefully this future-proofs us a bit
-function getAvailableContext(canvas, contextList) {
-  if (canvas.getContext) {
-    for(var i = 0; i < contextList.length; ++i) {
-      try {
-        var context = canvas.getContext(contextList[i], { antialias:false });
-        if(context !== null)
-          return context;
-      } catch (ex) {
-        console.log(ex); // eslint-disable-line
-      }
-    }
-  }
-  return null;
-}
 
-function renderLoop(gl) {
-  var startTime = new Date().getTime();
-  var lastTimestamp = startTime;
-  let timestamp = null;
-
-  var frameId = 0;
-
-  function onRequestedFrame(){
-    timestamp = new Date().getTime();
-
-    window.requestAnimationFrame(onRequestedFrame);
-
-    frameId++;
-
-    if (SKIP_FRAMES != 0 && frameId % SKIP_FRAMES != 0)
-      return;
-
-    onFrame(gl, {
-      timestamp: timestamp,
-      elapsed: timestamp - startTime,
-      frameTime: timestamp - lastTimestamp
-    });
-  }
-  window.requestAnimationFrame(onRequestedFrame);
-}
+import getAvailableContext from './renderer/get-available-context';
 
 function main() {
-  var canvas = document.getElementById("viewport");
-
-    // Get the GL Context (try 'webgl' first, then fallback)
-  var gl = getAvailableContext(canvas, ['webgl', 'experimental-webgl']);
+  const canvas = document.getElementById('viewport');
+  const gl = getAvailableContext(canvas, ['webgl', 'experimental-webgl']);
 
   onResize = function() {
     var devicePixelRatio = window.devicePixelRatio || 1;
@@ -430,8 +401,8 @@ function main() {
     document.getElementById('webgl-error').style.display = 'block';
   } else {
     initEvents();
-    initGL(gl, canvas);
-    renderLoop(gl);
+    renderer.initialize(gl, canvas);
+    renderer.renderLoop();
   }
 
   onResize();

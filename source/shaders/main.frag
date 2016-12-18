@@ -10,6 +10,6 @@ uniform sampler2D lightmap;
 void main(void) {
   vec4 diffuseColor = texture2D(texture, vTexCoord);
   vec4 lightColor = texture2D(lightmap, vLightmapCoord);
-  gl_FragColor = vec4(lightColor.rgb, 1.0);
-  //gl_FragColor = vec4(diffuseColor.rgb * lightColor.rgb, diffuseColor.a);
+  //gl_FragColor = vec4(lightColor.rgb, 1.0);
+  gl_FragColor = vec4(diffuseColor.rgb * lightColor.rgb, diffuseColor.a);
 }

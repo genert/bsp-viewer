@@ -1,6 +1,7 @@
 const ENGINES = {
   QUAKE3: 46,
-  WOLFET: 47
+  WOLFET: 47,
+  RTCW: 47
 };
 
 const config = {

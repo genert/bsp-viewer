@@ -1,5 +1,7 @@
 import config from '../config';
 
+const LUMP_LENGTH = 17;
+
 export default function (source) {
   return new Promise((success, failure) => {
     let header = {
@@ -8,7 +10,7 @@ export default function (source) {
       lumps: []
     };
 
-    for (let i = 0; i < 17; ++i) {
+    for (let i = 0; i < LUMP_LENGTH; ++i) {
       header.lumps.push({
         offset: source.readULong(),
         length: source.readULong()

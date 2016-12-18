@@ -12,7 +12,7 @@ export default class {
     this._bsp = bsp;
   }
 
-  trace(start, end, radius = 0) {
+  trace (start, end, radius = 0) {
     let output = {
       allSolid: false,
       startSolid: false,
@@ -21,7 +21,7 @@ export default class {
       plane: null
     };
 
-    if(!this._bsp) {
+    if (!this._bsp) {
       return output;
     }
 
@@ -115,7 +115,7 @@ export default class {
         middle[i] = start[i] + fraction2 * (end[i] - start[i]);
       }
 
-      this.traceNode(node.children[side===0?1:0], middleFraction, endFraction, middle, end, radius, output );
+      this.traceNode(node.children[side === 0 ? 1 : 0], middleFraction, endFraction, middle, end, radius, output );
     }
   }
 

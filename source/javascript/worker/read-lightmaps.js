@@ -3,7 +3,7 @@ import config from '../config';
 
 export default function (lump, src) {
   return new Promise((success) => {
-    if (config.ENGINE === config.ENGINES.QUAKE3) {
+    //if (config.ENGINE === config.ENGINES.QUAKE3 || config.engien === config.ENGINES.RTCW) {
       var lightmapSize = 128 * 128;
       var count = lump.length / (lightmapSize*3);
 
@@ -71,10 +71,12 @@ export default function (lump, src) {
       });
 
       success(lightmapRects);
-    } else {
+    /*} else {
       let lightmaps = [];
       let gridSize = 2;
       let textureSize = gridSize * 128;
+
+      console.log(lightmaps);
 
       postMessage({
         type: 'lightmap',
@@ -83,6 +85,6 @@ export default function (lump, src) {
       });
 
       success(lightmaps);
-    }
+    }*/
   });
 }
