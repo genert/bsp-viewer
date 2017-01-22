@@ -5,14 +5,14 @@ const ENGINES = {
 };
 
 const config = {
-  ENGINE: ENGINES.QUAKE3,
+  ENGINE: ENGINES.WOLFET,
 
   // Map related
-  MAP: 'q3tourney2.bsp',
+  MAP: 'maps/pilsner.bsp',
   SHADERS: ['demo.shaders'],
 
   // Rendering related.
-  LIGHTMAPS_ENABLED: true,
+  LIGHTMAPS_ENABLED: false,
 
   // Do not remove
   ENGINES: ENGINES
